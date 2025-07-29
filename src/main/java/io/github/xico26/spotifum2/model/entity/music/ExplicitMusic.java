@@ -1,10 +1,12 @@
 package io.github.xico26.spotifum2.model.entity.music;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
 import java.io.Serializable;
 
-/**
- * Música Explícita. Tipo de Música.
- */
+@Entity
+@DiscriminatorValue("EXPLICIT")
 public class ExplicitMusic extends Music implements IExplicitMusic, Serializable {
     /**
      * Construtor por omissão.
@@ -21,10 +23,7 @@ public class ExplicitMusic extends Music implements IExplicitMusic, Serializable
         super(m);
     }
 
-    /**
-     * Diz se uma música é explícita
-     * @return true
-     */
+    @Override
     public boolean isExplicit() {
         return true;
     }

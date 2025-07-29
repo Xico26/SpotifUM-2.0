@@ -5,6 +5,8 @@ import io.github.xico26.spotifum2.model.entity.Album;
 import jakarta.persistence.*;
 
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type")
 @Table(name="music")
 public class Music {
     @Id
@@ -192,7 +194,7 @@ public class Music {
      * Diz se uma música é explícita ou não.
      * @return false
      */
-    public boolean isExplicita () {
+    public boolean isExplicit() {
         return false;
     }
 
@@ -210,7 +212,7 @@ public class Music {
             return false;
         }
         Music m = (Music) o;
-        return this.id == m.id && (this.title.equals(m.title)) && (this.artist.equals(m.artist)) && (this.genre.equals(m.genre));
+        return this.id == m.id && (this.title.equals(m.title)) && (this.album.equals(m.album)) && (this.genre.equals(m.genre));
     }
 
     /**
@@ -219,7 +221,7 @@ public class Music {
      */
     @Override
     public String toString () {
-        return this.title + " - " + this.artist + " - " + this.genre;
+        return this.title + " - " + this.getArtist() + " - " + this.genre;
     }
 
     /**
@@ -237,6 +239,6 @@ public class Music {
      */
     @Override
     public int hashCode () {
-        return this.id * 17 + this.title.hashCode() + this.artist.hashCode() + this.genre.hashCode() + this.lyrics.hashCode() + this.duration * 5 + this.numPlays * 3;
+        return this.id * 17 + this.title.hashCode() + this.getArtist().hashCode() + this.genre.hashCode() + this.lyrics.hashCode() + this.duration * 5 + this.numPlays * 3;
     }
 }

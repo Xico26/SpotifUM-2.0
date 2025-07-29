@@ -6,15 +6,15 @@ import io.github.xico26.spotifum2.model.entity.music.Music;
 /**
  * Interface implementada por todos os planos. Contém todos os métodos que indicam as permissões dos utilizadores.
  */
-public interface IPlanoSubscricao {
+public interface ISubscriptionPlan {
 
-    boolean podeCriarPlaylist();
+    boolean canCreatePlaylist();
 
-    boolean podeGuardarPlaylist();
+    boolean canSavePlaylist();
 
     boolean podeGerarListaFavoritos();
 
-    boolean podeGuardarAlbum();
+    boolean canSaveAlbum();
 
     boolean podeAvancarRetroceder();
 
@@ -24,5 +24,5 @@ public interface IPlanoSubscricao {
 
     boolean podeOuvirMusicaIndividual();
 
-    void adicionarPontos (Music music, User user);
+    void addPoints(Music music, User user);
 }

@@ -1,8 +1,8 @@
 package io.github.xico26.spotifum2.model.entity;
 
 import io.github.xico26.spotifum2.model.entity.music.Music;
-import io.github.xico26.spotifum2.model.entity.plan.IPlanoSubscricao;
-import io.github.xico26.spotifum2.model.entity.plan.PlanoBase;
+import io.github.xico26.spotifum2.model.entity.plan.ISubscriptionPlan;
+import io.github.xico26.spotifum2.model.entity.plan.FreePlan;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -48,13 +48,14 @@ public class User {
     @Column(name="wants_explicit")
     private boolean wantsExplicit;
 
+    @Column(name="subscription_plan")
+    private String subscriptionPlan;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListeningRecord> listeningHistory = new ArrayList<>();
 
     private int age;
     private Biblioteca biblioteca;
-    private IPlanoSubscricao plano;
-
 
     // Empty constructor
     public User() {
@@ -68,14 +69,14 @@ public class User {
         this.points = 0;
         this.isAdmin = false;
         this.wantsExplicit = false;
+        this.subscriptionPlan = "FREE";
         this.listeningHistory = new ArrayList<ListeningRecord>();
 
         this.biblioteca = new Biblioteca();
-        this.plano = new PlanoBase();
     }
 
     // Param constructor
-    public User(String username, String password, String name, String address, String email, LocalDate birthDate) {
+    public User(String username, String password, String name, String address, String email, LocalDate birthDate, String plan) {
         this.name = name;
         this.username = username;
         this.password = password;
@@ -86,10 +87,10 @@ public class User {
         this.points = 0;
         this.isAdmin = false;
         this.wantsExplicit = false;
+        this.subscriptionPlan = plan;
         this.listeningHistory = new ArrayList<ListeningRecord>();
 
         this.biblioteca = new Biblioteca();
-        this.plano = new PlanoBase();
     }
 
     // Copy constructor
@@ -104,10 +105,11 @@ public class User {
         this.points = u.getPoints();
         this.isAdmin = u.isAdmin();
         this.wantsExplicit = u.wantsExplicit();
+        this.subscriptionPlan = u.getSubscriptionPlan();
         this.listeningHistory = u.getListeningHistory();
 
+
         this.biblioteca = u.getBiblioteca();
-        this.plano = u.getPlano();
     }
 
     /**
@@ -238,20 +240,12 @@ public class User {
         this.isAdmin = isAdmin;
     }
 
-    /**
-     * Devolve o plano de subscrição.
-     * @return plano de subscrição
-     */
-    public IPlanoSubscricao getPlano() {
-        return this.plano;
+    public String getSubscriptionPlan() {
+        return this.subscriptionPlan;
     }
 
-    /**
-     * Atualiza o plano de subscrição.
-     * @param plano novo plano de subscrição
-     */
-    public void setPlano(IPlanoSubscricao plano) {
-        this.plano = plano;
+    public void setSubscriptionPlan(String newPlan) {
+        this.subscriptionPlan = newPlan;
     }
 
     /**
@@ -317,7 +311,7 @@ public class User {
      * @param m música reproduzida
      */
     public void registaReproducaoMusica (Music m) {
-        this.getPlano().adicionarPontos(m, this);
+        this.getPlano().addPoints(m, this);
         LocalDateTime agora = LocalDateTime.now();
         if (this.musicasOuvidas.containsKey(m)) {
             this.musicasOuvidas.get(m).add(agora);
@@ -384,7 +378,7 @@ public class User {
             return false;
         }
         User u = (User) o;
-        return (this.username.equals(u.getUsername())) && (this.password.equals(u.getPassword())) && (this.name.equals(u.getName())) && (this.address.equals(u.getAddress())) && (this.email.equals(u.getEmail())) && (this.birthDate.equals(u.getBirthDate())) && this.points == u.getPoints() && this.musicasOuvidas.equals(u.getListeningHistory()) && this.biblioteca.equals(u.getBiblioteca());
+        return (this.username.equals(u.getUsername())) && (this.password.equals(u.getPassword())) && (this.name.equals(u.getName())) && (this.address.equals(u.getAddress())) && (this.email.equals(u.getEmail())) && (this.birthDate.equals(u.getBirthDate())) && this.points == u.getPoints() && this.biblioteca.equals(u.getBiblioteca());
     }
 
     /**

@@ -8,14 +8,14 @@ import java.io.Serializable;
 /**
  * Plano de subscrição Premium Top. Atribui 2,5% dos pontos acumulados por cada nova música ouvida.
  */
-public class PlanoPremiumTop implements IPlanoSubscricao, Serializable {
+public class PremiumPlan implements ISubscriptionPlan, Serializable {
     private static double bonusPercentual = 0.025;
 
-    public boolean podeCriarPlaylist() {
+    public boolean canCreatePlaylist() {
         return true;
     }
 
-    public boolean podeGuardarPlaylist() {
+    public boolean canSavePlaylist() {
         return true;
     }
 
@@ -23,7 +23,7 @@ public class PlanoPremiumTop implements IPlanoSubscricao, Serializable {
         return true;
     }
 
-    public boolean podeGuardarAlbum() {
+    public boolean canSaveAlbum() {
         return true;
     }
 
@@ -43,7 +43,7 @@ public class PlanoPremiumTop implements IPlanoSubscricao, Serializable {
         return true;
     }
 
-    public void adicionarPontos(Music music, User user) {
+    public void addPoints(Music music, User user) {
         if (!user.ouviuMusica(music)) {
             int pontos = user.getPoints();
             int bonus = (int)(pontos * bonusPercentual);

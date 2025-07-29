@@ -4,8 +4,8 @@ import io.github.xico26.spotifum2.exceptions.*;
 import io.github.xico26.spotifum2.model.entity.*;
 import io.github.xico26.spotifum2.model.entity.music.Music;
 import io.github.xico26.spotifum2.model.entity.music.ExplicitMusic;
-import io.github.xico26.spotifum2.model.entity.plan.IPlanoSubscricao;
-import io.github.xico26.spotifum2.model.entity.plan.PlanoPremiumTop;
+import io.github.xico26.spotifum2.model.entity.plan.ISubscriptionPlan;
+import io.github.xico26.spotifum2.model.entity.plan.PremiumPlan;
 import io.github.xico26.spotifum2.model.entity.playlist.*;
 
 import java.io.Serializable;
@@ -166,7 +166,7 @@ public class SpotifUM implements Serializable {
      * @throws SemPermissoesException    caso o utilizador não tenha permissões para o fazer
      */
     public void adicionaMusicaFavorita(User user, Music music) throws MusicaJaGuardadaException, SemPermissoesException {
-        if (!user.getPlano().podeGuardarAlbum()) {
+        if (!user.getPlano().canSaveAlbum()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
         user.getBiblioteca().adicionarMusica(music);
@@ -439,7 +439,7 @@ public class SpotifUM implements Serializable {
      * @throws SemPermissoesException   caso o utilizador não tenha permissões para o fazer
      */
     public void adicionaAlbumFavorito(User user, Album album) throws AlbumJaGuardadoException, SemPermissoesException {
-        if (!user.getPlano().podeGuardarAlbum()) {
+        if (!user.getPlano().canSaveAlbum()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
         if (user.getBiblioteca().getAlbuns().containsKey(album.getName())) {
@@ -473,7 +473,7 @@ public class SpotifUM implements Serializable {
      * @throws SemPermissoesException caso o utilizador não tenha permissões
      */
     public void criaPlaylist(String nome, User u) throws NomeJaExisteException, SemPermissoesException {
-        if (!u.getPlano().podeCriarPlaylist()) {
+        if (!u.getPlano().canCreatePlaylist()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
         if (u.getBiblioteca().getPlaylists().containsKey(nome)) {
@@ -674,7 +674,7 @@ public class SpotifUM implements Serializable {
      * @throws SemPermissoesException      caso o utilizador não tenha permissões
      */
     public void adicionaPlaylistBiblioteca(User user, Playlist playlist) throws PlaylistJaGuardadaException, SemPermissoesException {
-        if (!user.getPlano().podeGuardarPlaylist()) {
+        if (!user.getPlano().canSavePlaylist()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
         if (user.getBiblioteca().getPlaylists().containsKey(playlist.getNome())) {
@@ -720,9 +720,9 @@ public class SpotifUM implements Serializable {
      * @param user  utilizador
      * @param plano novo plano
      */
-    public void atualizaPlano(User user, IPlanoSubscricao plano) {
+    public void atualizaPlano(User user, ISubscriptionPlan plano) {
         user.setPlano(plano);
-        if (plano instanceof PlanoPremiumTop) {
+        if (plano instanceof PremiumPlan) {
             user.adicionarPontos(100);
         }
     }

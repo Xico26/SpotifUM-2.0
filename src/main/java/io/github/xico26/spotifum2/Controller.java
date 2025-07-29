@@ -4,9 +4,9 @@ import io.github.xico26.spotifum2.exceptions.*;
 import io.github.xico26.spotifum2.model.*;
 import io.github.xico26.spotifum2.model.entity.*;
 import io.github.xico26.spotifum2.model.entity.music.Music;
-import io.github.xico26.spotifum2.model.entity.plan.PlanoBase;
-import io.github.xico26.spotifum2.model.entity.plan.PlanoPremiumBase;
-import io.github.xico26.spotifum2.model.entity.plan.PlanoPremiumTop;
+import io.github.xico26.spotifum2.model.entity.plan.FreePlan;
+import io.github.xico26.spotifum2.model.entity.plan.PlusPlan;
+import io.github.xico26.spotifum2.model.entity.plan.PremiumPlan;
 import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
 import io.github.xico26.spotifum2.model.entity.playlist.PlaylistAleatoria;
 import io.github.xico26.spotifum2.model.entity.playlist.PlaylistConstruida;
@@ -134,7 +134,7 @@ public class Controller {
 
         while (aReproduzir && i < music.size()) {
             Music atual = music.get(i);
-            if ((atual.isExplicita() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
+            if ((atual.isExplicit() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
                 i++;
                 if (i >= music.size()) {
                     System.out.println("Fim da lista de músicas!");
@@ -356,22 +356,22 @@ public class Controller {
                 "Premium Top",
         });
 
-        menuPlanos.setPreCondition(1, () -> !(currentUser.getPlano() instanceof PlanoBase));
-        menuPlanos.setPreCondition(2, () -> !(currentUser.getPlano() instanceof PlanoPremiumBase));
-        menuPlanos.setPreCondition(3, () -> !(currentUser.getPlano() instanceof PlanoPremiumTop));
+        menuPlanos.setPreCondition(1, () -> !(currentUser.getPlano() instanceof FreePlan));
+        menuPlanos.setPreCondition(2, () -> !(currentUser.getPlano() instanceof PlusPlan));
+        menuPlanos.setPreCondition(3, () -> !(currentUser.getPlano() instanceof PremiumPlan));
 
         menuPlanos.setHandler(1, () -> {
-            this.modelo.atualizaPlano(currentUser, new PlanoBase());
+            this.modelo.atualizaPlano(currentUser, new FreePlan());
             System.out.println("Plano atualizado com sucesso!");
             menuDefinicoesUtilizador();
         });
         menuPlanos.setHandler(2, () -> {
-            this.modelo.atualizaPlano(currentUser, new PlanoPremiumBase());
+            this.modelo.atualizaPlano(currentUser, new PlusPlan());
             System.out.println("Plano atualizado com sucesso!");
             menuDefinicoesUtilizador();
         });
         menuPlanos.setHandler(3, () -> {
-            this.modelo.atualizaPlano(currentUser, new PlanoPremiumTop());
+            this.modelo.atualizaPlano(currentUser, new PremiumPlan());
             System.out.println("Plano atualizado com sucesso!");
             menuDefinicoesUtilizador();
         });
@@ -601,7 +601,7 @@ public class Controller {
             return;
         }
         List<Music> musicasFiltradas = music.stream()
-                .filter(m -> !(m.isExplicita() && !currentUser.wantsExplicit()))
+                .filter(m -> !(m.isExplicit() && !currentUser.wantsExplicit()))
                 .filter(m -> !(m.isMultimedia() && !currentUser.querVerMultimedia()))
                 .toList();
         String[] nomesMusicas = musicasFiltradas.stream().map(Music::getTitle).toArray(String[]::new);
@@ -669,8 +669,8 @@ public class Controller {
         });
         menuMusica.setPreCondition(1, () -> loggedIn);
         menuMusica.setPreCondition(3, () -> loggedIn);
-        menuMusica.setPreCondition(4, () -> loggedIn && currentUser.getPlano().podeCriarPlaylist());
-        menuMusica.setPreCondition(5, () -> isAdmin && !music.isExplicita());
+        menuMusica.setPreCondition(4, () -> loggedIn && currentUser.getPlano().canCreatePlaylist());
+        menuMusica.setPreCondition(5, () -> isAdmin && !music.isExplicit());
         menuMusica.setPreCondition(6, () -> isAdmin && !music.isMultimedia());
         menuMusica.setPreCondition(7, () -> isAdmin);
 
@@ -790,7 +790,7 @@ public class Controller {
         System.out.println("A REPRODUZIR: " + nomeLista);
         while (aReproduzir && i < music.size()) {
             Music atual = music.get(i);
-            if ((atual.isExplicita() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
+            if ((atual.isExplicit() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
                 i++;
                 if (i >= music.size()) {
                     System.out.println("Fim da lista de músicas!");
@@ -975,7 +975,7 @@ public class Controller {
      * UI para criar uma playlist.
      */
     public void menuCriarPlaylist() {
-        if (!currentUser.getPlano().podeCriarPlaylist()) {
+        if (!currentUser.getPlano().canCreatePlaylist()) {
             System.out.println("O plano atual não permite criar playlists!");
             return;
         }

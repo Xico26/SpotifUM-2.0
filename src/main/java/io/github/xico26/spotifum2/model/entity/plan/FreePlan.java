@@ -8,15 +8,15 @@ import java.io.Serializable;
 /**
  * Plano de subscrição Base. Atribui 5 pontos por música.
  */
-public class PlanoBase implements IPlanoSubscricao, Serializable {
+public class FreePlan implements ISubscriptionPlan, Serializable {
     private static int pontosPorMusica = 5;
 
 
-    public boolean podeCriarPlaylist() {
+    public boolean canCreatePlaylist() {
         return false;
     }
 
-    public boolean podeGuardarPlaylist() {
+    public boolean canSavePlaylist() {
         return false;
     }
 
@@ -24,7 +24,7 @@ public class PlanoBase implements IPlanoSubscricao, Serializable {
         return false;
     }
 
-    public boolean podeGuardarAlbum() {
+    public boolean canSaveAlbum() {
         return false;
     }
 
@@ -44,7 +44,7 @@ public class PlanoBase implements IPlanoSubscricao, Serializable {
         return false;
     }
 
-    public void adicionarPontos(Music music, User user) {
+    public void addPoints(Music music, User user) {
         user.adicionarPontos(pontosPorMusica);
     }
 
