@@ -1,7 +1,7 @@
 package io.github.xico26.spotifum2.model.entity.plan;
 
-import io.github.xico26.spotifum2.model.entity.Utilizador;
-import io.github.xico26.spotifum2.model.entity.music.Musica;
+import io.github.xico26.spotifum2.model.entity.User;
+import io.github.xico26.spotifum2.model.entity.music.Music;
 
 /**
  * Interface implementada por todos os planos. Contém todos os métodos que indicam as permissões dos utilizadores.
@@ -24,5 +24,5 @@ public interface IPlanoSubscricao {
 
     boolean podeOuvirMusicaIndividual();
 
-    void adicionarPontos (Musica musica, Utilizador utilizador);
+    void adicionarPontos (Music music, User user);
 }

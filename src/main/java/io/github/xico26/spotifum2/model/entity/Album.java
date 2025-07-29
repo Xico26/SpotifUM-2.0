@@ -1,170 +1,149 @@
 package io.github.xico26.spotifum2.model.entity;
 
 import io.github.xico26.spotifum2.exceptions.MusicaNaoExisteException;
-import io.github.xico26.spotifum2.model.entity.music.Musica;
+import io.github.xico26.spotifum2.model.entity.music.Music;
+import jakarta.persistence.*;
 
-import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-/**
- * Representação de um álbum
- */
-public class Album implements Serializable {
-    private String nome;
-    private String interprete;
-    private String editora;
-    private int anoLancamento;
-    private int duracao;
-    private Map<String, Musica> musicas;
+@Entity
+@Table(name="album")
+public class Album {
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private int id;
 
-    /**
-     * Construtor por omissão.
-     */
+    @Column(name="name", nullable = false)
+    private String name;
+
+    @Column(name="label")
+    private String label;
+
+    @Column(name="year", nullable=false)
+    private int year;
+
+    @Column(name="duration")
+    private int duration;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "artist_id", nullable = false)
+    private Artist artist;
+
+    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Music> musics = new ArrayList<>();
+
+
+    // Empty Constructor
     public Album () {
-        this.nome = "";
-        this.interprete = "";
-        this.editora = "";
-        this.anoLancamento = 0;
-        this.duracao = 0;
-        this.musicas = new HashMap<String,Musica>();
+        this.name = "";
+        this.label = "";
+        this.year = 2000;
+        this.duration = 0;
+        this.musics =  new ArrayList<Music>();
     }
 
-    /**
-     * Construtor parametrizado. Aceita:
-     * @param tituloAlbum Nome do Álbum
-     * @param artista Artista
-     * @param editora Editora
-     * @param anoLancamento Ano de Lançamento
-     */
-    public Album(String tituloAlbum, String artista, String editora, int anoLancamento) {
-        this.nome = tituloAlbum;
-        this.interprete = artista;
-        this.editora = editora;
-        this.anoLancamento = anoLancamento;
-        this.duracao = 0;
-        this.musicas = new HashMap<String,Musica>();
+    // Param Constructor
+    public Album(String name, String label, int year, Artist artist) {
+        this.name = name;
+        this.label = label;
+        this.year = year;
+        this.duration = 0;
+        this.artist = artist;
+        this.musics = new ArrayList<Music>();
     }
 
-    /**
-     * Construtor parametrizado. Aceita:
-     * @param tituloAlbum Nome do Álbum
-     * @param artista Artista
-     * @param editora Editora
-     * @param anoLancamento Ano de Lançamento
-     * @param duracao Duração
-     * @param musicas Lista de Músicas
-     */
-    public Album(String tituloAlbum, String artista, String editora, int anoLancamento, int duracao, Map<String,Musica> musicas) {
-        this.nome = tituloAlbum;
-        this.interprete = artista;
-        this.editora = editora;
-        this.anoLancamento = anoLancamento;
-        this.duracao = duracao;
-        setMusicas(musicas);
-    }
-
-
-    /**
-     * Construtor de cópia.
-     * @param a Album
-     */
+    // Copy constructor
     public Album (Album a) {
-        this.nome = a.getNome();
-        this.interprete = a.getInterprete();
-        this.editora = a.getEditora();
-        this.anoLancamento = a.getAnoLancamento();
-        this.duracao = a.getDuracao();
-        this.musicas = a.getMusicas();
+        this.name = a.getName();
+        this.label = a.getLabel();
+        this.year = a.getYear();
+        this.duration = a.getDuration();
+        this.artist = a.getArtist();
+        setMusics(a.getMusics());
     }
 
     /**
      * Devolve o nome do Álbum
      * @return nome
      */
-    public String getNome() {
-        return this.nome;
+    public String getName() {
+        return this.name;
     }
 
     /**
      * Atualiza o nome.
      * @param nome novo nome
      */
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    /**
-     * Devolve o intérprete.
-     * @return interprete
-     */
-    public String getInterprete() {
-        return this.interprete;
-    }
-
-    /**
-     * Atualiza o intérprete
-     * @param interprete novo intérprete
-     */
-    public void setInterprete(String interprete) {
-        this.interprete = interprete;
+    public void setName(String nome) {
+        this.name = nome;
     }
 
     /**
      * Devolve a editora
      * @return editora
      */
-    public String getEditora() {
-        return this.editora;
+    public String getLabel() {
+        return this.label;
     }
 
     /**
      * Atualiza a editora
      * @param editora nova editora
      */
-    public void setEditora(String editora) {
-        this.editora = editora;
+    public void setLabel(String editora) {
+        this.label = editora;
     }
 
     /**
      * Devolve o ano de lançamento
      * @return anoLancamento
      */
-    public int getAnoLancamento() {
-        return this.anoLancamento;
+    public int getYear() {
+        return this.year;
     }
 
     /**
      * Atualiza o ano de lançamento
      * @param anoLancamento novo ano de lançamento
      */
-    public void setAnoLancamento(int anoLancamento) {
-        this.anoLancamento = anoLancamento;
+    public void setYear(int anoLancamento) {
+        this.year = anoLancamento;
     }
 
     /**
      * Devolve a duração do álbum
      * @return duracao
      */
-    public int getDuracao() {
-        return this.duracao;
+    public int getDuration() {
+        return this.duration;
     }
 
     /**
      * Atualiza a duração do álbum
      * @param duracao nova duração
      */
-    public void setDuracao(int duracao) {
-        this.duracao = duracao;
+    public void setDuration(int duracao) {
+        this.duration = duracao;
+    }
+
+    public Artist getArtist() {
+        return this.artist;
+    }
+
+    public void setArtist(Artist a) {
+        this.artist = a;
     }
 
     /**
      * Devolve a lista de músicas do álbum, efetuando clone para evitar modificação da lista original.
      * @return musicas
      */
-    public Map<String, Musica> getMusicas() {
-        Map<String,Musica> musicasClone = new HashMap<String,Musica>();
-        for (Map.Entry<String,Musica> m : this.musicas.entrySet()) {
+    public Map<String, Music> getMusics() {
+        Map<String, Music> musicasClone = new HashMap<String, Music>();
+        for (Map.Entry<String, Music> m : this.musicas.entrySet()) {
             musicasClone.put(m.getKey(), m.getValue().clone());
         }
         return musicasClone;
@@ -174,9 +153,9 @@ public class Album implements Serializable {
      * Atualiza a lista de músicas, dada uma lista de músicas. É realizado clone das músicas.
      * @param cs lista de músicas novas
      */
-    public void setMusicas(Map<String, Musica> cs) {
-        this.musicas = new HashMap<String,Musica>();
-        for (Map.Entry<String,Musica> c : cs.entrySet()) {
+    public void setMusics(Map<String, Music> cs) {
+        this.musicas = new HashMap<String, Music>();
+        for (Map.Entry<String, Music> c : cs.entrySet()) {
             this.musicas.put(c.getKey(), c.getValue().clone());
         }
     }
@@ -185,8 +164,8 @@ public class Album implements Serializable {
      * Adiciona música ao álbum
      * @param m música
      */
-    public void adicionaMusica (Musica m) {
-        this.musicas.put(m.getNome(),m.clone());
+    public void addMusic (Music m) {
+        this.musics.add(m);
     }
 
     /**
@@ -210,14 +189,6 @@ public class Album implements Serializable {
     }
 
     /**
-     * Devolve o número de músicas no álbum
-     * @return numMusicas
-     */
-    public int getNumMusicas() {
-        return this.musicas.size();
-    }
-
-    /**
      * Faz uma cópia de um Álbum usando o construtor de cópia.
      * @return álbum
      */
@@ -230,7 +201,7 @@ public class Album implements Serializable {
      * @return hashCode
      */
     public int hashCode() {
-        return (int) (this.nome.hashCode() + this.interprete.hashCode() + this.editora.hashCode() + (this.anoLancamento * 13) + (this.duracao * 7) + this.musicas.size());
+        return (int) (this.name.hashCode() + this.artist.hashCode() + this.label.hashCode() + (this.year * 13));
     }
 
     /**
@@ -246,7 +217,7 @@ public class Album implements Serializable {
             return false;
         }
         Album a = (Album) o;
-        return (this.nome.equals(a.nome)) && (this.interprete.equals(a.interprete)) && (this.editora.equals(a.editora)) && this.anoLancamento == a.anoLancamento && this.duracao == a.duracao && this.musicas.equals(a.getMusicas());
+        return (this.name.equals(a.name)) && (this.artist.equals(a.artist)) && (this.label.equals(a.label)) && this.year == a.year && this.duration == a.duration;
     }
 
     /**
@@ -254,7 +225,7 @@ public class Album implements Serializable {
      * @return String com nome, intérprete e ano de lançamento
      */
     public String toString() {
-        return this.nome + " - " + this.interprete + " - " + this.anoLancamento;
+        return this.name + " - " + this.artist + " - " + this.year;
 
     }
 }

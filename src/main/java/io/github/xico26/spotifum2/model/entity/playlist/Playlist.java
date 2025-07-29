@@ -1,7 +1,7 @@
 package io.github.xico26.spotifum2.model.entity.playlist;
 
-import io.github.xico26.spotifum2.model.entity.Utilizador;
-import io.github.xico26.spotifum2.model.entity.music.Musica;
+import io.github.xico26.spotifum2.model.entity.User;
+import io.github.xico26.spotifum2.model.entity.music.Music;
 
 import java.io.Serializable;
 import java.util.*;
@@ -11,16 +11,16 @@ import java.util.*;
  */
 public abstract class Playlist implements Serializable {
     protected String nome;
-    protected Map<String, Musica> musicas;
+    protected Map<String, Music> musicas;
     protected boolean isPublic;
-    protected Utilizador criador;
+    protected User criador;
 
     /**
      * Construtor por omissão.
      */
     public Playlist() {
         this.nome = "";
-        this.musicas = new HashMap<String,Musica>();
+        this.musicas = new HashMap<String, Music>();
         this.isPublic = false;
         this.criador = null;
     }
@@ -30,9 +30,9 @@ public abstract class Playlist implements Serializable {
      * @param nome nome da playlist
      * @param criador utilizador que cria a playlist
      */
-    public Playlist(String nome, Utilizador criador) {
+    public Playlist(String nome, User criador) {
         this.nome = nome;
-        this.musicas = new HashMap<String,Musica>();
+        this.musicas = new HashMap<String, Music>();
         this.isPublic = false;
         this.criador = criador;
     }
@@ -60,9 +60,9 @@ public abstract class Playlist implements Serializable {
      * Devolve as músicas da playlist.
      * @return músicas
      */
-    public Map<String, Musica> getMusicas() {
-        Map<String,Musica> musicasClone = new HashMap<String,Musica>();
-        for (Map.Entry<String,Musica> m : this.musicas.entrySet()) {
+    public Map<String, Music> getMusicas() {
+        Map<String, Music> musicasClone = new HashMap<String, Music>();
+        for (Map.Entry<String, Music> m : this.musicas.entrySet()) {
             musicasClone.put(m.getKey(), m.getValue());
         }
         return musicasClone;
@@ -80,19 +80,19 @@ public abstract class Playlist implements Serializable {
      * Atualiza as músicas da playlist.
      * @param cs novas músicas.
      */
-    public void setMusicas(Map<String, Musica> cs) {
-        this.musicas = new HashMap<String,Musica>();
-        for (Map.Entry<String,Musica> c : cs.entrySet()) {
+    public void setMusicas(Map<String, Music> cs) {
+        this.musicas = new HashMap<String, Music>();
+        for (Map.Entry<String, Music> c : cs.entrySet()) {
             this.musicas.put(c.getKey(), c.getValue().clone());
         }
     }
 
     /**
      * Adiciona música à playlist.
-     * @param musica música a adicionar
+     * @param music música a adicionar
      */
-    public void adicionarMusica(Musica musica) {
-        this.musicas.put(musica.getNome(), musica);
+    public void adicionarMusica(Music music) {
+        this.musicas.put(music.getTitle(), music);
     }
 
     /**
@@ -115,7 +115,7 @@ public abstract class Playlist implements Serializable {
      * Devolve o criador da playlist.
      * @return utilizador
      */
-    public Utilizador getCriador() {
+    public User getCriador() {
         return this.criador;
     }
 
@@ -154,6 +154,6 @@ public abstract class Playlist implements Serializable {
      * @return nome da playlist - criador
      */
     public String toString() {
-        return this.nome + " - Criada por: " + this.criador.getNome();
+        return this.nome + " - Criada por: " + this.criador.getName();
     }
 }

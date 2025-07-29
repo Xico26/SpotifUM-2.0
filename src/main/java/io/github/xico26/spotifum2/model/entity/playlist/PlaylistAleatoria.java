@@ -1,6 +1,6 @@
 package io.github.xico26.spotifum2.model.entity.playlist;
 
-import io.github.xico26.spotifum2.model.entity.Utilizador;
+import io.github.xico26.spotifum2.model.entity.User;
 
 import java.io.Serializable;
 
@@ -14,7 +14,7 @@ public class PlaylistAleatoria extends Playlist implements Serializable {
      * @param nome nome da playlist
      * @param criador criador
      */
-    public PlaylistAleatoria(String nome, Utilizador criador) {
+    public PlaylistAleatoria(String nome, User criador) {
         super (nome, criador);
     }
 

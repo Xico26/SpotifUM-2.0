@@ -5,11 +5,11 @@ import java.io.Serializable;
 /**
  * Música Explícita. Tipo de Música.
  */
-public class MusicaExplicita extends Musica implements IMusicaExplicita, Serializable {
+public class ExplicitMusic extends Music implements IExplicitMusic, Serializable {
     /**
      * Construtor por omissão.
      */
-    public MusicaExplicita() {
+    public ExplicitMusic() {
         super();
     }
 
@@ -17,7 +17,7 @@ public class MusicaExplicita extends Musica implements IMusicaExplicita, Seriali
      * Construtor parametrizado. Aceita:
      * @param m Música
      */
-    public MusicaExplicita(Musica m) {
+    public ExplicitMusic(Music m) {
         super(m);
     }
 
@@ -25,7 +25,7 @@ public class MusicaExplicita extends Musica implements IMusicaExplicita, Seriali
      * Diz se uma música é explícita
      * @return true
      */
-    public boolean isExplicita() {
+    public boolean isExplicit() {
         return true;
     }
 
@@ -57,15 +57,15 @@ public class MusicaExplicita extends Musica implements IMusicaExplicita, Seriali
         if ((o == null) || (this.getClass() != o.getClass())) {
             return false;
         }
-        MusicaExplicita m = (MusicaExplicita) o;
-        return super.equals(m) && this.isExplicita() == m.isExplicita();
+        ExplicitMusic m = (ExplicitMusic) o;
+        return super.equals(m) && this.isExplicit() == m.isExplicit();
     }
 
     /**
      * Clona uma música explícita usando o construtor de cópia.
      * @return música clonada
      */
-    public MusicaExplicita clone() {
-        return new MusicaExplicita(this);
+    public ExplicitMusic clone() {
+        return new ExplicitMusic(this);
     }
 }

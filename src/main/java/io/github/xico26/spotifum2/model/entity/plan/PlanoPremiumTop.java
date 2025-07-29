@@ -1,7 +1,7 @@
 package io.github.xico26.spotifum2.model.entity.plan;
 
-import io.github.xico26.spotifum2.model.entity.Utilizador;
-import io.github.xico26.spotifum2.model.entity.music.Musica;
+import io.github.xico26.spotifum2.model.entity.User;
+import io.github.xico26.spotifum2.model.entity.music.Music;
 
 import java.io.Serializable;
 
@@ -43,11 +43,11 @@ public class PlanoPremiumTop implements IPlanoSubscricao, Serializable {
         return true;
     }
 
-    public void adicionarPontos(Musica musica, Utilizador utilizador) {
-        if (!utilizador.ouviuMusica(musica)) {
-            int pontos = utilizador.getPontos();
+    public void adicionarPontos(Music music, User user) {
+        if (!user.ouviuMusica(music)) {
+            int pontos = user.getPoints();
             int bonus = (int)(pontos * bonusPercentual);
-            utilizador.adicionarPontos(bonus);
+            user.adicionarPontos(bonus);
         }
     }
 

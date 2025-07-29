@@ -3,7 +3,7 @@ package io.github.xico26.spotifum2;
 import io.github.xico26.spotifum2.exceptions.*;
 import io.github.xico26.spotifum2.model.*;
 import io.github.xico26.spotifum2.model.entity.*;
-import io.github.xico26.spotifum2.model.entity.music.Musica;
+import io.github.xico26.spotifum2.model.entity.music.Music;
 import io.github.xico26.spotifum2.model.entity.plan.PlanoBase;
 import io.github.xico26.spotifum2.model.entity.plan.PlanoPremiumBase;
 import io.github.xico26.spotifum2.model.entity.plan.PlanoPremiumTop;
@@ -25,7 +25,7 @@ public class Controller {
     private static final Scanner scanner = new Scanner(System.in);
     private SpotifUM modelo;
     private boolean loggedIn = false;
-    private Utilizador currentUser;
+    private User currentUser;
     private boolean isAdmin = false;
 
     /**
@@ -64,7 +64,7 @@ public class Controller {
                 "Pesquisar...",
                 "Ouvir Playlist aleatória",
                 "Criar Playlist",
-                "Utilizador",
+                "User",
                 "Estatísticas",
                 "Administração",
                 "Logout",
@@ -125,18 +125,18 @@ public class Controller {
         boolean aReproduzir = true;
         Random r = new Random();
         System.out.println("\nA REPRODUZIR A PLAYLIST ALEATÓRIA");
-        List<Musica> musicas = new ArrayList<Musica>(pa.getMusicas().values().stream().toList());
+        List<Music> music = new ArrayList<Music>(pa.getMusicas().values().stream().toList());
 
-        if (musicas.isEmpty()) {
+        if (music.isEmpty()) {
             System.out.println("Lista vazia!");
             return;
         }
 
-        while (aReproduzir && i < musicas.size()) {
-            Musica atual = musicas.get(i);
-            if ((atual.isExplicita() && !currentUser.querVerExplicita()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
+        while (aReproduzir && i < music.size()) {
+            Music atual = music.get(i);
+            if ((atual.isExplicita() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
                 i++;
-                if (i >= musicas.size()) {
+                if (i >= music.size()) {
                     System.out.println("Fim da lista de músicas!");
                     aReproduzir = false;
                 }
@@ -149,7 +149,7 @@ public class Controller {
 
             boolean saltou = false;
 
-            List<String> letra = atual.getLetra();
+            String letra = atual.getLyrics();
             for (String linha : letra) {
                 System.out.print(linha + " ");
                 String cmd = scanner.nextLine();
@@ -158,7 +158,7 @@ public class Controller {
                     case "r":
                         int novoI = i;
                         while (novoI == i) {
-                            novoI = r.nextInt(musicas.size());
+                            novoI = r.nextInt(music.size());
                         }
                         i = novoI;
                         saltou = true;
@@ -180,7 +180,7 @@ public class Controller {
                 currentUser.registaReproducaoMusica(atual);
             }
 
-            if (i >= musicas.size()) {
+            if (i >= music.size()) {
                 System.out.println("\nFim da lista de músicas!\n");
                 aReproduzir = false;
             }
@@ -191,7 +191,7 @@ public class Controller {
      * UI para efetuar login.
      */
     public void login() {
-        Utilizador res = null;
+        User res = null;
         int tentativas = 0;
         do {
             System.out.print("Username: ");
@@ -212,7 +212,7 @@ public class Controller {
         this.loggedIn = true;
         this.currentUser = res;
         this.isAdmin = res.isAdmin();
-        System.out.println("Login efetuado com sucesso! Bem vindo, " + currentUser.getNome() + "!");
+        System.out.println("Login efetuado com sucesso! Bem vindo, " + currentUser.getName() + "!");
         menuPrincipal();
     }
 
@@ -324,7 +324,7 @@ public class Controller {
                 "Apagar conta"
         });
 
-        menuDefinicoes.setPreCondition(4, () -> !this.currentUser.querVerExplicita());
+        menuDefinicoes.setPreCondition(4, () -> !this.currentUser.wantsExplicit());
         menuDefinicoes.setPreCondition(5, () -> !this.currentUser.querVerMultimedia());
         menuDefinicoes.setPreCondition(6, () -> this.currentUser.querVerMultimedia());
         menuDefinicoes.setPreCondition(7, () -> this.currentUser.querVerMultimedia());
@@ -333,7 +333,7 @@ public class Controller {
         menuDefinicoes.setHandler(1, () -> menuAtualizarPlano());
         menuDefinicoes.setHandler(2, () -> this.modelo.apagaHistorico(currentUser));
         menuDefinicoes.setHandler(3, () -> menuInformacoes());
-        menuDefinicoes.setHandler(4, () -> this.currentUser.setQuerVerExplicita(true));
+        menuDefinicoes.setHandler(4, () -> this.currentUser.setWantsExplicit(true));
         menuDefinicoes.setHandler(5, () -> this.currentUser.setQuerVerMultimedia(true));
         menuDefinicoes.setHandler(6, () -> this.currentUser.setQuerVerMultimedia(false));
         menuDefinicoes.setHandler(7, () -> this.currentUser.setQuerVerMultimedia(false));
@@ -386,11 +386,11 @@ public class Controller {
         System.out.println("+.:+ <AS MINHAS INFORMAÇÕES> +.:+");
         System.out.println("Username: " + currentUser.getUsername());
         System.out.println("Plano: " + currentUser.getPlano().toString().toUpperCase());
-        System.out.println("Nome: " + currentUser.getNome());
+        System.out.println("Nome: " + currentUser.getName());
         System.out.println("Email: " + currentUser.getEmail().toLowerCase());
-        System.out.println("Morada: " + currentUser.getMorada());
-        System.out.println("Data de Nascimento: " + currentUser.getDataNascimento().toString());
-        System.out.println("Pontos: " + currentUser.getPontos());
+        System.out.println("Morada: " + currentUser.getAddress());
+        System.out.println("Data de Nascimento: " + currentUser.getBirthDate().toString());
+        System.out.println("Pontos: " + currentUser.getPoints());
         System.out.println("Nº. de músicas ouvidas: " + currentUser.getNumMusicasOuvidas());
 
         menuDefinicoesUtilizador();
@@ -536,7 +536,7 @@ public class Controller {
      * Metodo intermédio para explorar músicas guardadas.
      */
     private void explorarMusicas() {
-        List<Musica> musicasGuardadas = new ArrayList<Musica>(this.currentUser.getBiblioteca().getMusicas().values());
+        List<Music> musicasGuardadas = new ArrayList<Music>(this.currentUser.getBiblioteca().getMusicas().values());
         if (musicasGuardadas.isEmpty()) {
             System.out.println("Sem músicas guardadas!");
             return;
@@ -577,7 +577,7 @@ public class Controller {
         System.out.println("+.:+ <PESQUISA POR INTÉRPRETE> +.:+");
         System.out.print("Intérprete: ");
         String interprete = scanner.nextLine();
-        List<Musica> musicas = this.modelo.pesquisaMusicasInterprete(interprete);
+        List<Music> music = this.modelo.pesquisaMusicasInterprete(interprete);
         List<Album> albuns = this.modelo.pesquisaAlbunsInterprete(interprete);
 
         Menu menuPesquisaInterprete = new Menu("pesquisar por interprete...", new String[]{
@@ -585,7 +585,7 @@ public class Controller {
                 "Álbuns"
         });
 
-        menuPesquisaInterprete.setHandler(1, () -> imprimeListaMusicas(musicas));
+        menuPesquisaInterprete.setHandler(1, () -> imprimeListaMusicas(music));
         menuPesquisaInterprete.setHandler(2, () -> imprimeListaAlbuns(albuns));
 
         menuPesquisaInterprete.run();
@@ -593,18 +593,18 @@ public class Controller {
 
     /**
      * Imprime uma lista de músicas, tendo em atenção as preferências do utilizador sobre o tipo de músicas a esconder.
-     * @param musicas lista de músicas
+     * @param music lista de músicas
      */
-    public void imprimeListaMusicas(List<Musica> musicas) {
-        if (musicas.isEmpty()) {
+    public void imprimeListaMusicas(List<Music> music) {
+        if (music.isEmpty()) {
             System.out.println("Nenhuma música encontrada!");
             return;
         }
-        List<Musica> musicasFiltradas = musicas.stream()
-                .filter(m -> !(m.isExplicita() && !currentUser.querVerExplicita()))
+        List<Music> musicasFiltradas = music.stream()
+                .filter(m -> !(m.isExplicita() && !currentUser.wantsExplicit()))
                 .filter(m -> !(m.isMultimedia() && !currentUser.querVerMultimedia()))
                 .toList();
-        String[] nomesMusicas = musicasFiltradas.stream().map(Musica::getNome).toArray(String[]::new);
+        String[] nomesMusicas = musicasFiltradas.stream().map(Music::getTitle).toArray(String[]::new);
         Menu menuListaMusicas = new Menu("músicas encontradas",nomesMusicas);
         for (int i = 0; i < musicasFiltradas.size(); i++) {
             int index = i;
@@ -654,10 +654,10 @@ public class Controller {
 
     /**
      * Menu com informações de uma música. Permite ouvi-la, ver a letra e adicionar à biblioteca
-     * @param musica música
+     * @param music música
      */
-    public void menuInfoMusica(Musica musica) {
-        System.out.println(musica.toString());
+    public void menuInfoMusica(Music music) {
+        System.out.println(music.toString());
         Menu menuMusica = new Menu("opções", new String[]{
                 "Ouvir música",
                 "Ver letra",
@@ -670,8 +670,8 @@ public class Controller {
         menuMusica.setPreCondition(1, () -> loggedIn);
         menuMusica.setPreCondition(3, () -> loggedIn);
         menuMusica.setPreCondition(4, () -> loggedIn && currentUser.getPlano().podeCriarPlaylist());
-        menuMusica.setPreCondition(5, () -> isAdmin && !musica.isExplicita());
-        menuMusica.setPreCondition(6, () -> isAdmin && !musica.isMultimedia());
+        menuMusica.setPreCondition(5, () -> isAdmin && !music.isExplicita());
+        menuMusica.setPreCondition(6, () -> isAdmin && !music.isMultimedia());
         menuMusica.setPreCondition(7, () -> isAdmin);
 
         menuMusica.setHandler(1, () -> {
@@ -680,30 +680,30 @@ public class Controller {
                 System.out.println("Para ouvir músicas, crie uma playlist aleatória!");
                 return;
             }
-            System.out.println(musica.reproduzMusica(currentUser));
+            System.out.println(music.reproduzMusica(currentUser));
         });
-        menuMusica.setHandler(2, () -> System.out.println(musica.imprimeLetra()));
+        menuMusica.setHandler(2, () -> System.out.println(music.imprimeLetra()));
         menuMusica.setHandler(3, () -> {
             try {
-                this.modelo.adicionaMusicaFavorita(currentUser, musica);
+                this.modelo.adicionaMusicaFavorita(currentUser, music);
             } catch (MusicaJaGuardadaException | SemPermissoesException e) {
                 System.out.println(e.getMessage());
                 return;
             }
             System.out.println("Música guardada com sucesso!");
         });
-        menuMusica.setHandler(4, () -> adicionaMusicaPlaylist(musica));
-        menuMusica.setHandler(5, () -> this.modelo.tornaExplicita(musica));
-        menuMusica.setHandler(6, () -> this.modelo.tornaMultimedia(musica));
+        menuMusica.setHandler(4, () -> adicionaMusicaPlaylist(music));
+        menuMusica.setHandler(5, () -> this.modelo.tornaExplicita(music));
+        menuMusica.setHandler(6, () -> this.modelo.tornaMultimedia(music));
         menuMusica.setHandler(7, () -> {
-            this.modelo.removeMusica(musica);
+            this.modelo.removeMusica(music);
             menuPesquisar();
         });
 
         menuMusica.run();
     }
 
-    private void adicionaMusicaPlaylist(Musica musica) {
+    private void adicionaMusicaPlaylist(Music music) {
         System.out.println("+.:+ <ADICIONAR MÚSICA A PLAYLIST> +.:+");
 
         List<Playlist> playlists = currentUser.getBiblioteca().getPlaylists().values().stream().filter(p -> p.getCriador().equals(currentUser)).toList();
@@ -721,10 +721,10 @@ public class Controller {
                     System.out.println("A playlist não existe!");
                 }
                 Playlist p = currentUser.getBiblioteca().getPlaylists().get(playlist.getNome());
-                if (p.getMusicas().containsKey(musica.getNome())) {
+                if (p.getMusicas().containsKey(music.getTitle())) {
                     System.out.println("Música já guardada!");
                 }
-                p.adicionarMusica(musica);
+                p.adicionarMusica(music);
                 System.out.println("Música adicionada com sucesso!");
                 explorarBiblioteca();
             });
@@ -762,7 +762,7 @@ public class Controller {
             }
             System.out.println("Álbum guardado com sucesso!");
         });
-        menuAlbum.setHandler(4, () -> menuCriarMusica(album.getNome()));
+        menuAlbum.setHandler(4, () -> menuCriarMusica(album.getName()));
         menuAlbum.setHandler(5, () -> {
             try {
                 this.modelo.removeAlbum(album);
@@ -777,22 +777,22 @@ public class Controller {
     /**
      * Reproduz uma lista de músicas genérica, podendo portanto reproduzir álbuns e playlists. Permite saltar durante a reprodução e sair a qualquer momento.
      * @param nomeLista nome da lista
-     * @param musicas lista de músicas
+     * @param music lista de músicas
      */
-    public void reproduzListaMusicas(String nomeLista, List<Musica> musicas) {
+    public void reproduzListaMusicas(String nomeLista, List<Music> music) {
         int i = 0;
         boolean aReproduzir = true;
         Random r = new Random();
-        if (musicas.isEmpty()) {
+        if (music.isEmpty()) {
             System.out.println("Lista vazia!");
             return;
         }
         System.out.println("A REPRODUZIR: " + nomeLista);
-        while (aReproduzir && i < musicas.size()) {
-            Musica atual = musicas.get(i);
-            if ((atual.isExplicita() && !currentUser.querVerExplicita()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
+        while (aReproduzir && i < music.size()) {
+            Music atual = music.get(i);
+            if ((atual.isExplicita() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
                 i++;
-                if (i >= musicas.size()) {
+                if (i >= music.size()) {
                     System.out.println("Fim da lista de músicas!");
                     aReproduzir = false;
                 }
@@ -802,15 +802,15 @@ public class Controller {
             System.out.println("Enter para continuar, a=Música Anterior, p=Próxima Música, r=Música Aleatória, s=Sair");
 
             System.out.println("\nA REPRODUZIR MÚSICA: " + atual.toString() + "\n");
-            if (i+1 < musicas.size()) {
-                System.out.println("Música seguinte: " + musicas.get(i+1).toString() + "\n");
+            if (i+1 < music.size()) {
+                System.out.println("Música seguinte: " + music.get(i+1).toString() + "\n");
             } else {
                 System.out.println("Última música");
             }
 
             boolean saltou = false;
 
-            List<String> letra = atual.getLetra();
+            String letra = atual.getLyrics();
             for (String linha : letra) {
                 System.out.print(linha + " ");
                 String cmd = scanner.nextLine();
@@ -829,10 +829,10 @@ public class Controller {
                         saltou = true;
                         break;
                     case "r":
-                        if (musicas.size() > 1) {
+                        if (music.size() > 1) {
                             int novoI;
                             do {
-                                novoI = r.nextInt(musicas.size());
+                                novoI = r.nextInt(music.size());
                             } while (novoI == i);
                             i = novoI;
                             saltou = true;
@@ -858,7 +858,7 @@ public class Controller {
                 currentUser.registaReproducaoMusica(atual);
             }
 
-            if (i >= musicas.size()) {
+            if (i >= music.size()) {
                 System.out.println("\nFim da lista de músicas!\n");
                 aReproduzir = false;
             }
@@ -870,8 +870,8 @@ public class Controller {
      * @param album
      */
     public void reproduzAlbum(Album album) {
-        List<Musica> musicas = album.getMusicas().values().stream().toList();
-        reproduzListaMusicas(album.getNome(), musicas);
+        List<Music> music = album.getMusicas().values().stream().toList();
+        reproduzListaMusicas(album.getName(), music);
     }
 
     /**
@@ -925,14 +925,14 @@ public class Controller {
     public void reproduzPlaylist(Playlist playlist) {
         if (playlist instanceof PlaylistConstruida) {
             if (currentUser.getPlano().podeOuvirPlaylistConstruida()) {
-                List<Musica> musicas = new ArrayList<Musica>(playlist.getMusicas().values().stream().toList());
-                reproduzListaMusicas(playlist.getNome(), musicas);
+                List<Music> music = new ArrayList<Music>(playlist.getMusicas().values().stream().toList());
+                reproduzListaMusicas(playlist.getNome(), music);
             } else {
                 System.out.println("O plano atual só permite ouvir playlists aleatórias!");
             }
         } else if (playlist instanceof PlaylistAleatoria) {
-            List<Musica> musicas = new ArrayList<Musica>(playlist.getMusicas().values().stream().toList());
-            reproduzListaMusicas(playlist.getNome(), musicas);
+            List<Music> music = new ArrayList<Music>(playlist.getMusicas().values().stream().toList());
+            reproduzListaMusicas(playlist.getNome(), music);
         }
     }
 
@@ -948,11 +948,11 @@ public class Controller {
         System.out.println("Nº. de intérpretes: " + this.modelo.getTotalInterpretes());
         System.out.println("Música mais reproduzida: " + this.modelo.getMusicaMaisReproduzida());
         System.out.println("Intérprete mais escutado: " + this.modelo.getInterpreteMaisEscutado());
-        System.out.println("Utilizador que mais músicas ouviu desde sempre: " + this.modelo.getUserMaisMusicasOuvidas(LocalDate.of(2000,1,1)));
-        System.out.println("Utilizador que mais músicas ouviu no último mês: " + this.modelo.getUserMaisMusicasOuvidas(LocalDate.now().minusMonths(1)));
-        System.out.println("Utilizador com mais pontos: " + this.modelo.getUserMaisPontos());
+        System.out.println("User que mais músicas ouviu desde sempre: " + this.modelo.getUserMaisMusicasOuvidas(LocalDate.of(2000,1,1)));
+        System.out.println("User que mais músicas ouviu no último mês: " + this.modelo.getUserMaisMusicasOuvidas(LocalDate.now().minusMonths(1)));
+        System.out.println("User com mais pontos: " + this.modelo.getUserMaisPontos());
         System.out.println("Género de música mais reproduzida: " + this.modelo.getTipoMaisReproduzido());
-        System.out.println("Utilizador com mais playlists: " + this.modelo.getUserMaisPlaylists());
+        System.out.println("User com mais playlists: " + this.modelo.getUserMaisPlaylists());
     }
 
     /**
@@ -1028,7 +1028,7 @@ public class Controller {
             System.out.println("Música com o nome " + nome + " já existe!");
         }
 
-        System.out.println("Musica '" + nome + "' adicionada!");
+        System.out.println("Music '" + nome + "' adicionada!");
     }
 
     /**

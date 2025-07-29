@@ -1,6 +1,6 @@
 package io.github.xico26.spotifum2.model.entity.playlist;
 
-import io.github.xico26.spotifum2.model.entity.Utilizador;
+import io.github.xico26.spotifum2.model.entity.User;
 
 import java.io.Serializable;
 
@@ -13,7 +13,7 @@ public class ListaFavoritos extends Playlist implements Serializable {
      * @param nome nome da playlist
      * @param criador utilizador que cria a playlist
      */
-    public ListaFavoritos(String nome, Utilizador criador) {
+    public ListaFavoritos(String nome, User criador) {
         super (nome, criador);
     }
 

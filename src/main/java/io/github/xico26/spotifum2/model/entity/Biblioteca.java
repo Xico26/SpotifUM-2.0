@@ -4,7 +4,7 @@ import io.github.xico26.spotifum2.exceptions.AlbumJaGuardadoException;
 import io.github.xico26.spotifum2.exceptions.AlbumNaoExisteException;
 import io.github.xico26.spotifum2.exceptions.MusicaJaGuardadaException;
 import io.github.xico26.spotifum2.exceptions.PlaylistJaGuardadaException;
-import io.github.xico26.spotifum2.model.entity.music.Musica;
+import io.github.xico26.spotifum2.model.entity.music.Music;
 import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
 
 import java.io.Serializable;
@@ -17,7 +17,7 @@ import java.util.Map;
 public class Biblioteca implements Serializable {
     private Map<String, Album> albunsGuardados;
     private Map<String, Playlist> playlistsGuardadas;
-    private Map<String, Musica> musicasGuardadas;
+    private Map<String, Music> musicasGuardadas;
 
     /**
      * Constutor por omissão.
@@ -25,7 +25,7 @@ public class Biblioteca implements Serializable {
     public Biblioteca() {
         this.albunsGuardados = new HashMap<String, Album>();
         this.playlistsGuardadas = new HashMap<String, Playlist>();
-        this.musicasGuardadas = new HashMap<String,Musica>();
+        this.musicasGuardadas = new HashMap<String, Music>();
     }
 
     /**
@@ -34,7 +34,7 @@ public class Biblioteca implements Serializable {
      * @param playlists lista de playlists
      * @param musicas lista de músicas
      */
-    public Biblioteca(Map<String, Album> albuns, Map<String, Playlist> playlists, Map<String,Musica> musicas) {
+    public Biblioteca(Map<String, Album> albuns, Map<String, Playlist> playlists, Map<String, Music> musicas) {
         setAlbuns(albuns);
         setPlaylists(playlists);
         setMusicas(musicas);
@@ -100,9 +100,9 @@ public class Biblioteca implements Serializable {
      * Devolve a lista de músicas guardadas.
      * @return lista de músicas guardadas
      */
-    public Map<String, Musica> getMusicas() {
-        Map<String, Musica> musicasClone = new HashMap<String, Musica>();
-        for (Map.Entry<String, Musica> m : this.musicasGuardadas.entrySet()) {
+    public Map<String, Music> getMusicas() {
+        Map<String, Music> musicasClone = new HashMap<String, Music>();
+        for (Map.Entry<String, Music> m : this.musicasGuardadas.entrySet()) {
             musicasClone.put(m.getKey(), m.getValue());
         }
         return musicasClone;
@@ -112,9 +112,9 @@ public class Biblioteca implements Serializable {
      * Atualiza a lista de músicas guardadas.
      * @param musicas nova lista de músicas
      */
-    public void setMusicas(Map<String, Musica> musicas) {
-        this.musicasGuardadas = new HashMap<String, Musica>();
-        for (Map.Entry<String, Musica> m : musicas.entrySet()) {
+    public void setMusicas(Map<String, Music> musicas) {
+        this.musicasGuardadas = new HashMap<String, Music>();
+        for (Map.Entry<String, Music> m : musicas.entrySet()) {
             this.musicasGuardadas.put(m.getKey(), m.getValue().clone());
         }
     }
@@ -124,10 +124,10 @@ public class Biblioteca implements Serializable {
      * @param album álbum a adicionar
      */
     public void adicionarAlbum(Album album) {
-        if (this.albunsGuardados.containsKey(album.getNome())) {
-            throw new AlbumJaGuardadoException(album.getNome());
+        if (this.albunsGuardados.containsKey(album.getName())) {
+            throw new AlbumJaGuardadoException(album.getName());
         }
-        this.albunsGuardados.put(album.getNome(), album);
+        this.albunsGuardados.put(album.getName(), album);
     }
 
     /**
@@ -167,11 +167,11 @@ public class Biblioteca implements Serializable {
      * @param m Música a adicionar
      * @throws MusicaJaGuardadaException exceção caso já esteja guardada
      */
-    public void adicionarMusica(Musica m) throws MusicaJaGuardadaException {
-        if (this.musicasGuardadas.containsKey(m.getNome())) {
+    public void adicionarMusica(Music m) throws MusicaJaGuardadaException {
+        if (this.musicasGuardadas.containsKey(m.getTitle())) {
             throw new MusicaJaGuardadaException("Música já guardada!");
         }
-        this.musicasGuardadas.put(m.getNome(), m);
+        this.musicasGuardadas.put(m.getTitle(), m);
     }
 
     /**

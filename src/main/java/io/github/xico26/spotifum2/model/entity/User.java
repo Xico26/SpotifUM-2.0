@@ -1,10 +1,10 @@
 package io.github.xico26.spotifum2.model.entity;
 
-import io.github.xico26.spotifum2.model.entity.music.Musica;
+import io.github.xico26.spotifum2.model.entity.music.Music;
 import io.github.xico26.spotifum2.model.entity.plan.IPlanoSubscricao;
 import io.github.xico26.spotifum2.model.entity.plan.PlanoBase;
+import jakarta.persistence.*;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -13,87 +13,101 @@ import java.util.*;
 /**
  * Implementa um utilizador.
  */
-public class Utilizador implements Serializable {
-    private String username;
-    private String password;
-    private String nome;
-    private String morada;
-    private String email;
-    private LocalDate dataNascimento;
-    private int idade;
-    private int pontos;
-    private Map<Musica,List<LocalDateTime>> musicasOuvidas; // musica - datas ouvidas
-    private Biblioteca biblioteca;
-    private boolean isAdmin;
-    private IPlanoSubscricao plano;
-    private boolean querVerExplicita;
-    private boolean querVerMultimedia;
 
-    /**
-     * Construtor por omissão.
-     */
-    public Utilizador () {
+@Entity
+@Table(name="user")
+public class User {
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private int id;
+
+    @Column(name="name")
+    private String name;
+
+    @Column(name="username")
+    private String username;
+
+    @Column(name="password")
+    private String password;
+
+    @Column(name="address")
+    private String address;
+
+    @Column(name="email")
+    private String email;
+
+    @Column(name="birth_date")
+    private LocalDate birthDate;
+
+    @Column(name="points")
+    private int points;
+
+    @Column(name="is_admin")
+    private boolean isAdmin;
+
+    @Column(name="wants_explicit")
+    private boolean wantsExplicit;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ListeningRecord> listeningHistory = new ArrayList<>();
+
+    private int age;
+    private Biblioteca biblioteca;
+    private IPlanoSubscricao plano;
+
+
+    // Empty constructor
+    public User() {
+        this.name = "";
         this.username = "";
         this.password = "";
-        this.nome = "";
-        this.morada = "";
+        this.address = "";
         this.email = "";
-        this.dataNascimento = LocalDate.of(2000,1,1);
-        atualizaIdade();
-        this.pontos = 0;
-        this.musicasOuvidas = new HashMap<Musica,List<LocalDateTime>>();
-        this.biblioteca = new Biblioteca();
+        this.birthDate = LocalDate.of(2000,1,1);
+        updateAge();
+        this.points = 0;
         this.isAdmin = false;
+        this.wantsExplicit = false;
+        this.listeningHistory = new ArrayList<ListeningRecord>();
+
+        this.biblioteca = new Biblioteca();
         this.plano = new PlanoBase();
-        this.querVerExplicita = false;
-        this.querVerMultimedia = false;
     }
 
-    /**
-     * Construtor parametrizado. Aceita:
-     * @param username username
-     * @param password password
-     * @param nome nome
-     * @param morada morada
-     * @param email email
-     * @param dataNascimento data de nascimento
-     */
-    public Utilizador(String username, String password, String nome, String morada, String email, LocalDate dataNascimento) {
+    // Param constructor
+    public User(String username, String password, String name, String address, String email, LocalDate birthDate) {
+        this.name = name;
         this.username = username;
         this.password = password;
-        this.nome = nome;
-        this.morada = morada;
+        this.address = address;
         this.email = email;
-        this.dataNascimento = dataNascimento;
-        atualizaIdade();
-        this.pontos = 0;
-        this.musicasOuvidas = new HashMap<Musica,List<LocalDateTime>>();
-        this.biblioteca = new Biblioteca();
+        this.birthDate = birthDate;
+        updateAge();
+        this.points = 0;
         this.isAdmin = false;
+        this.wantsExplicit = false;
+        this.listeningHistory = new ArrayList<ListeningRecord>();
+
+        this.biblioteca = new Biblioteca();
         this.plano = new PlanoBase();
-        this.querVerExplicita = false;
-        this.querVerMultimedia = false;
     }
 
-    /**
-     * Construtor de cópia. Aceita:
-     * @param u utilizador a copiar
-     */
-    public Utilizador (Utilizador u) {
+    // Copy constructor
+    public User(User u) {
+        this.name = u.getName();
         this.username = u.getUsername();
         this.password = u.getPassword();
-        this.nome = u.getNome();
-        this.morada = u.getMorada();
+        this.address = u.getAddress();
         this.email = u.getEmail();
-        this.dataNascimento = u.getDataNascimento();
-        atualizaIdade();
-        this.pontos = u.getPontos();
-        this.musicasOuvidas = u.getMusicasOuvidas();
-        this.biblioteca = u.getBiblioteca();
+        this.birthDate = u.getBirthDate();
+        updateAge();
+        this.points = u.getPoints();
         this.isAdmin = u.isAdmin();
+        this.wantsExplicit = u.wantsExplicit();
+        this.listeningHistory = u.getListeningHistory();
+
+        this.biblioteca = u.getBiblioteca();
         this.plano = u.getPlano();
-        this.querVerExplicita = u.querVerExplicita();
-        this.querVerMultimedia = u.querVerMultimedia();
     }
 
     /**
@@ -132,32 +146,32 @@ public class Utilizador implements Serializable {
      * Devolve o nome.
      * @return nome
      */
-    public String getNome() {
-        return nome;
+    public String getName() {
+        return name;
     }
 
     /**
      * Atualiza o nome.
      * @param nome novo nome
      */
-    public void setNome(String nome) {
-        this.nome = nome;
+    public void setName(String nome) {
+        this.name = nome;
     }
 
     /**
      * Devolve a morada.
      * @return morada
      */
-    public String getMorada() {
-        return morada;
+    public String getAddress() {
+        return address;
     }
 
     /**
      * Atualiza a morada.
      * @param morada nova morada
      */
-    public void setMorada(String morada) {
-        this.morada = morada;
+    public void setAddress(String morada) {
+        this.address = morada;
     }
 
     /**
@@ -180,32 +194,32 @@ public class Utilizador implements Serializable {
      * Devolve a data de nascimento.
      * @return data de nascimento
      */
-    public LocalDate getDataNascimento() {
-        return dataNascimento;
+    public LocalDate getBirthDate() {
+        return birthDate;
     }
 
     /**
      * Atualiza a data de nascimento.
      * @param dataNascimento nova data de nascimento
      */
-    public void setDataNascimento(LocalDate dataNascimento) {
-        this.dataNascimento = dataNascimento;
+    public void setBirthDate(LocalDate dataNascimento) {
+        this.birthDate = dataNascimento;
     }
 
     /**
      * Devolve a idade.
      * @return idade
      */
-    public int getIdade() {
-        return idade;
+    public int getAge() {
+        return age;
     }
 
     /**
      * Atualiza a idade.
      * @param idade nova idade
      */
-    public void setIdade(int idade) {
-        this.idade = idade;
+    public void setAge(int idade) {
+        this.age = idade;
     }
 
     /**
@@ -243,24 +257,24 @@ public class Utilizador implements Serializable {
     /**
      * Atualiza automaticamente a idade com base na data de nascimento e na data atual.
      */
-    public void atualizaIdade() {
-        this.idade = Period.between(this.dataNascimento, LocalDate.now()).getYears();
+    public void updateAge() {
+        this.age = Period.between(this.birthDate, LocalDate.now()).getYears();
     }
 
     /**
      * Devolve os pontos.
      * @return pontos
      */
-    public int getPontos() {
-        return this.pontos;
+    public int getPoints() {
+        return this.points;
     }
 
     /**
      * Atualiza os pontos.
      * @param pontos novo valor dos pontos
      */
-    public void setPontos(int pontos) {
-        this.pontos = pontos;
+    public void setPoints(int pontos) {
+        this.points = pontos;
     }
 
     /**
@@ -268,35 +282,15 @@ public class Utilizador implements Serializable {
      * @param pontos pontos
      */
     public void adicionarPontos(int pontos) {
-        this.pontos += pontos;
+        this.points += pontos;
     }
 
-    /**
-     * Devolve as músicas ouvidas.
-     * @return músicas ouvidas
-     */
-    public Map<Musica,List<LocalDateTime>> getMusicasOuvidas() {
-        Map<Musica,List<LocalDateTime>> musicasOuvidasClone = new HashMap<Musica,List<LocalDateTime>>();
-        for (Map.Entry<Musica,List<LocalDateTime>> m : this.musicasOuvidas.entrySet()) {
-            List<LocalDateTime> datasClone = new ArrayList<LocalDateTime>(m.getValue());
-            musicasOuvidasClone.put(m.getKey().clone(), datasClone);
-        }
-        return musicasOuvidasClone;
+    public List<ListeningRecord> getListeningHistory() {
+        return this.listeningHistory;
     }
 
-    /**
-     * Atualiza as músicas ouvidas.
-     * @param ms novas músicas
-     */
-    public void setMusicasOuvidas(Map<Musica, List<LocalDateTime>> ms) {
-        this.musicasOuvidas = new HashMap<Musica,List<LocalDateTime>>();
-
-        for (Map.Entry<Musica, List<LocalDateTime>> m : ms.entrySet()) {
-            Musica musicaClone = m.getKey().clone();
-            List<LocalDateTime> datasClone = new ArrayList<>(m.getValue());
-
-            this.musicasOuvidas.put(musicaClone, datasClone);
-        }
+    public void setMusicasOuvidas(List<ListeningRecord> listeningHistory) {
+        this.listeningHistory = listeningHistory;
     }
 
     /**
@@ -304,7 +298,7 @@ public class Utilizador implements Serializable {
      * @param m música
      * @return true / false
      */
-    public boolean ouviuMusica (Musica m) {
+    public boolean ouviuMusica (Music m) {
         return this.musicasOuvidas.containsKey(m);
     }
 
@@ -322,7 +316,7 @@ public class Utilizador implements Serializable {
      * Também adiciona pontos ao utilizador com base no plano de subscrição.
      * @param m música reproduzida
      */
-    public void registaReproducaoMusica (Musica m) {
+    public void registaReproducaoMusica (Music m) {
         this.getPlano().adicionarPontos(m, this);
         LocalDateTime agora = LocalDateTime.now();
         if (this.musicasOuvidas.containsKey(m)) {
@@ -354,32 +348,12 @@ public class Utilizador implements Serializable {
      * Diz se o utilizador quer ver músicas explícitas.
      * @return true / false
      */
-    public boolean querVerExplicita () {
-        return this.querVerExplicita;
+    public boolean wantsExplicit() {
+        return this.wantsExplicit;
     }
 
-    /**
-     * Atualiza se o utilizador quer ver músicas explícitas.
-     * @param querVerExplicita true / false
-     */
-    public void setQuerVerExplicita (boolean querVerExplicita) {
-        this.querVerExplicita = querVerExplicita;
-    }
-
-    /**
-     * Diz se o utilizador quer ver músicas multimédia.
-     * @return true / false
-     */
-    public boolean querVerMultimedia () {
-        return this.querVerMultimedia;
-    }
-
-    /**
-     * Atualiza se o utilizador quer ver músicas multimédia.
-     * @param querVerMultimedia true / false
-     */
-    public void setQuerVerMultimedia (boolean querVerMultimedia) {
-        this.querVerMultimedia = querVerMultimedia;
+    public void setWantsExplicit(boolean wantsExplicit) {
+        this.wantsExplicit = wantsExplicit;
     }
 
     /**
@@ -394,7 +368,7 @@ public class Utilizador implements Serializable {
      * @return hash code
      */
     public int hashCode() {
-        return this.username.hashCode() + this.password.hashCode() + this.nome.hashCode() + this.morada.hashCode() + this.email.hashCode() + this.dataNascimento.hashCode() * this.pontos;
+        return this.username.hashCode() + this.password.hashCode() + this.name.hashCode() + this.address.hashCode() + this.email.hashCode() + this.birthDate.hashCode() * this.points;
     }
 
     /**
@@ -409,23 +383,23 @@ public class Utilizador implements Serializable {
         if ((o == null) || (this.getClass() != o.getClass())) {
             return false;
         }
-        Utilizador u = (Utilizador) o;
-        return (this.username.equals(u.getUsername())) && (this.password.equals(u.getPassword())) && (this.nome.equals(u.getNome())) && (this.morada.equals(u.getMorada())) && (this.email.equals(u.getEmail())) && (this.dataNascimento.equals(u.getDataNascimento())) && this.pontos == u.getPontos() && this.musicasOuvidas.equals(u.getMusicasOuvidas()) && this.biblioteca.equals(u.getBiblioteca());
+        User u = (User) o;
+        return (this.username.equals(u.getUsername())) && (this.password.equals(u.getPassword())) && (this.name.equals(u.getName())) && (this.address.equals(u.getAddress())) && (this.email.equals(u.getEmail())) && (this.birthDate.equals(u.getBirthDate())) && this.points == u.getPoints() && this.musicasOuvidas.equals(u.getListeningHistory()) && this.biblioteca.equals(u.getBiblioteca());
     }
 
     /**
      * Clona utilizador usando construtor de cópia
      * @return utilizador clonado
      */
-    public Utilizador clone() {
-        return new Utilizador(this);
+    public User clone() {
+        return new User(this);
     }
 
     /**
      * Representação em String de um utilizador
-     * @return Utilizador: username
+     * @return User: username
      */
     public String toString() {
-        return "Utilizador: " + this.getUsername();
+        return "User: " + this.getUsername();
     }
 }

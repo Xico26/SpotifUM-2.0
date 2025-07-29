@@ -1,7 +1,7 @@
 package io.github.xico26.spotifum2.model.entity.plan;
 
-import io.github.xico26.spotifum2.model.entity.Utilizador;
-import io.github.xico26.spotifum2.model.entity.music.Musica;
+import io.github.xico26.spotifum2.model.entity.User;
+import io.github.xico26.spotifum2.model.entity.music.Music;
 
 import java.io.Serializable;
 
@@ -44,8 +44,8 @@ public class PlanoBase implements IPlanoSubscricao, Serializable {
         return false;
     }
 
-    public void adicionarPontos(Musica musica, Utilizador utilizador) {
-        utilizador.adicionarPontos(pontosPorMusica);
+    public void adicionarPontos(Music music, User user) {
+        user.adicionarPontos(pontosPorMusica);
     }
 
     public static int getPontosPorMusica() {
