@@ -1,8 +1,6 @@
 package io.github.xico26.spotifum2.model.entity;
 
 import io.github.xico26.spotifum2.model.entity.music.Music;
-import io.github.xico26.spotifum2.model.entity.plan.ISubscriptionPlan;
-import io.github.xico26.spotifum2.model.entity.plan.FreePlan;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -54,8 +52,11 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ListeningRecord> listeningHistory = new ArrayList<>();
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Library library;
+
     private int age;
-    private Biblioteca biblioteca;
+
 
     // Empty constructor
     public User() {
@@ -72,7 +73,7 @@ public class User {
         this.subscriptionPlan = "FREE";
         this.listeningHistory = new ArrayList<ListeningRecord>();
 
-        this.biblioteca = new Biblioteca();
+        this.library = new Library();
     }
 
     // Param constructor
@@ -89,8 +90,7 @@ public class User {
         this.wantsExplicit = false;
         this.subscriptionPlan = plan;
         this.listeningHistory = new ArrayList<ListeningRecord>();
-
-        this.biblioteca = new Biblioteca();
+        this.library = new Library(this);
     }
 
     // Copy constructor
@@ -107,9 +107,7 @@ public class User {
         this.wantsExplicit = u.wantsExplicit();
         this.subscriptionPlan = u.getSubscriptionPlan();
         this.listeningHistory = u.getListeningHistory();
-
-
-        this.biblioteca = u.getBiblioteca();
+        this.library = new Library(u.getLibrary());
     }
 
     /**
@@ -323,19 +321,19 @@ public class User {
     }
 
     /**
-     * Devolve a biblioteca do utilizador.
-     * @return biblioteca
+     * Devolve a library do utilizador.
+     * @return library
      */
-    public Biblioteca getBiblioteca() {
-        return this.biblioteca;
+    public Library getLibrary() {
+        return this.library;
     }
 
     /**
-     * Atualiza a biblioteca do utilizador.
-     * @param b nova biblioteca
+     * Atualiza a library do utilizador.
+     * @param b nova library
      */
-    public void setBiblioteca (Biblioteca b) {
-        this.biblioteca = new Biblioteca(b);
+    public void setLibrary(Library b) {
+        this.library = new Library(b);
     }
 
     /**
@@ -378,7 +376,7 @@ public class User {
             return false;
         }
         User u = (User) o;
-        return (this.username.equals(u.getUsername())) && (this.password.equals(u.getPassword())) && (this.name.equals(u.getName())) && (this.address.equals(u.getAddress())) && (this.email.equals(u.getEmail())) && (this.birthDate.equals(u.getBirthDate())) && this.points == u.getPoints() && this.biblioteca.equals(u.getBiblioteca());
+        return (this.username.equals(u.getUsername())) && (this.password.equals(u.getPassword())) && (this.name.equals(u.getName())) && (this.address.equals(u.getAddress())) && (this.email.equals(u.getEmail())) && (this.birthDate.equals(u.getBirthDate())) && this.points == u.getPoints() && this.library.equals(u.getLibrary());
     }
 
     /**

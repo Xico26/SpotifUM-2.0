@@ -5,9 +5,7 @@ import io.github.xico26.spotifum2.model.entity.music.Music;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @Table(name="album")
@@ -137,27 +135,12 @@ public class Album {
         this.artist = a;
     }
 
-    /**
-     * Devolve a lista de músicas do álbum, efetuando clone para evitar modificação da lista original.
-     * @return musicas
-     */
-    public Map<String, Music> getMusics() {
-        Map<String, Music> musicasClone = new HashMap<String, Music>();
-        for (Map.Entry<String, Music> m : this.musicas.entrySet()) {
-            musicasClone.put(m.getKey(), m.getValue().clone());
-        }
-        return musicasClone;
+    public List<Music> getMusics() {
+        return this.musics;
     }
 
-    /**
-     * Atualiza a lista de músicas, dada uma lista de músicas. É realizado clone das músicas.
-     * @param cs lista de músicas novas
-     */
-    public void setMusics(Map<String, Music> cs) {
-        this.musicas = new HashMap<String, Music>();
-        for (Map.Entry<String, Music> c : cs.entrySet()) {
-            this.musicas.put(c.getKey(), c.getValue().clone());
-        }
+    public void setMusics(List<Music> ms) {
+        this.musics = new ArrayList<Music>(ms);
     }
 
     /**

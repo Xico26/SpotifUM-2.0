@@ -1,49 +1,51 @@
 package io.github.xico26.spotifum2.model.entity.playlist;
 
 import io.github.xico26.spotifum2.model.entity.User;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
 import java.io.Serializable;
 
 /**
- * Playlist com músicas aleatórias. Tipo de playlist.
+ * Playlist construida por utilizadores. Tipo de Playlist.
  */
-public class PlaylistAleatoria extends Playlist implements Serializable {
+@Entity
+@DiscriminatorValue("custom")
+public class CustomPlaylist extends Playlist {
+    public CustomPlaylist() {
+        super();
+    }
 
-    /**
-     * Constutor parametrizado. Aceita:
-     * @param nome nome da playlist
-     * @param criador criador
-     */
-    public PlaylistAleatoria(String nome, User criador) {
-        super (nome, criador);
+    public CustomPlaylist(String name, User creator) {
+        super(name, creator);
     }
 
     /**
      * Construtor de cópia. Aceita:
      * @param p playlist a ser copiada
      */
-    public PlaylistAleatoria (PlaylistAleatoria p) {
+    public CustomPlaylist(CustomPlaylist p) {
         super (p);
     }
 
     /**
-     * Clona uma playlist aleatória usando o constutor de cópia.
+     * Clona uma playlist construída usando o constutor de cópia.
      * @return playlist clonada
      */
-    public PlaylistAleatoria clone() {
-        return new PlaylistAleatoria(this);
+    public CustomPlaylist clone() {
+        return new CustomPlaylist(this);
     }
 
     /**
-     * Calcula o hash code de uma playlist aleatória.
+     * Calcula o hash code de uma playlist construída.
      * @return hash code
      */
     public int hashCode() {
-        return super.hashCode() * 17;
+        return super.hashCode() * 23;
     }
 
     /**
-     * Implementa igualdade entre playlists aleatórias.
+     * Implementa igualdade entre playlists construídas.
      * @param o objeto
      * @return true / false
      */
@@ -54,12 +56,12 @@ public class PlaylistAleatoria extends Playlist implements Serializable {
         if ((o == null) || (this.getClass() != o.getClass())) {
             return false;
         }
-        PlaylistAleatoria p = (PlaylistAleatoria) o;
+        CustomPlaylist p = (CustomPlaylist) o;
         return super.equals(p);
     }
 
     /**
-     * Representação em String de uma playlist aleatória
+     * Representação em String de uma playlist construída
      * @return representação em String de uma playlist.
      */
     public String toString() {

@@ -1,27 +1,23 @@
 package io.github.xico26.spotifum2.model.entity.playlist;
 
 import io.github.xico26.spotifum2.model.entity.User;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
 import java.io.Serializable;
 
-/**
- * Lista com músicas mais ouvidas de um utilizador. Tipo de playlist.
- */
-public class ListaFavoritos extends Playlist implements Serializable {
-    /**
-     * Construtor parametrizado. Aceita:
-     * @param nome nome da playlist
-     * @param criador utilizador que cria a playlist
-     */
-    public ListaFavoritos(String nome, User criador) {
-        super (nome, criador);
+@Entity
+@DiscriminatorValue("favourite")
+public class FavouriteList extends Playlist {
+    public FavouriteList() {
+        super();
     }
 
-    /**
-     * Construtor de cópia. Aceita:
-     * @param p playlist a copiar
-     */
-    public ListaFavoritos (ListaFavoritos p) {
+    public FavouriteList(String name, User creator) {
+        super (name, creator);
+    }
+
+    public FavouriteList(FavouriteList p) {
         super (p);
     }
 
@@ -29,8 +25,8 @@ public class ListaFavoritos extends Playlist implements Serializable {
      * Clona uma lista de favoritos usando o construtor de cópia
      * @return lista clonada
      */
-    public ListaFavoritos clone() {
-        return new ListaFavoritos(this);
+    public FavouriteList clone() {
+        return new FavouriteList(this);
     }
 
     /**
@@ -53,7 +49,7 @@ public class ListaFavoritos extends Playlist implements Serializable {
         if ((o == null) || (this.getClass() != o.getClass())) {
             return false;
         }
-        ListaFavoritos f = (ListaFavoritos) o;
+        FavouriteList f = (FavouriteList) o;
         return super.equals(f);
     }
 

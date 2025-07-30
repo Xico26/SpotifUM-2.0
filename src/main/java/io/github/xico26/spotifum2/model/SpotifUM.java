@@ -169,7 +169,7 @@ public class SpotifUM implements Serializable {
         if (!user.getPlano().canSaveAlbum()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
-        user.getBiblioteca().adicionarMusica(music);
+        user.getLibrary().adicionarMusica(music);
     }
 
     /**
@@ -211,9 +211,9 @@ public class SpotifUM implements Serializable {
     public int getTotalPlaylists() {
         List<String> playlists = new ArrayList<String>();
         for (User user : this.utilizadores.values()) {
-            for (Playlist p : user.getBiblioteca().getPlaylists().values()) {
-                if (!playlists.contains(p.getNome())) {
-                    playlists.add(p.getNome());
+            for (Playlist p : user.getLibrary().getPlaylists().values()) {
+                if (!playlists.contains(p.getName())) {
+                    playlists.add(p.getName());
                 }
             }
         }
@@ -333,7 +333,7 @@ public class SpotifUM implements Serializable {
         User user = null;
         int max = 0;
         for (User u : this.utilizadores.values()) {
-            Biblioteca b = u.getBiblioteca();
+            Library b = u.getLibrary();
             int num = (int) b.getPlaylists().entrySet().stream().filter(p -> p.getValue().getCriador().equals(u)).count();
 
             if (num > max) {
@@ -387,8 +387,8 @@ public class SpotifUM implements Serializable {
     public List<Playlist> pesquisaPlaylists(String query) {
         List<Playlist> playlists = new ArrayList<Playlist>();
         for (User user : this.utilizadores.values()) {
-            for (Playlist p : user.getBiblioteca().getPlaylists().values()) {
-                if (p.getNome().toLowerCase().contains(query.toLowerCase()) && p.isPublic()) {
+            for (Playlist p : user.getLibrary().getPlaylists().values()) {
+                if (p.getName().toLowerCase().contains(query.toLowerCase()) && p.isPublic()) {
                     playlists.add(p);
                 }
             }
@@ -442,10 +442,10 @@ public class SpotifUM implements Serializable {
         if (!user.getPlano().canSaveAlbum()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
-        if (user.getBiblioteca().getAlbuns().containsKey(album.getName())) {
+        if (user.getLibrary().getAlbums().containsKey(album.getName())) {
             throw new AlbumJaGuardadoException("O álbum já está guardado!");
         }
-        user.getBiblioteca().adicionarAlbum(album);
+        user.getLibrary().adicionarAlbum(album);
     }
 
     /**
@@ -476,11 +476,11 @@ public class SpotifUM implements Serializable {
         if (!u.getPlano().canCreatePlaylist()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
-        if (u.getBiblioteca().getPlaylists().containsKey(nome)) {
+        if (u.getLibrary().getPlaylists().containsKey(nome)) {
             throw new NomeJaExisteException("Já existe uma playlist com o nome " + nome);
         }
-        Playlist novaPlaylist = new PlaylistConstruida(nome, u);
-        u.getBiblioteca().adicionarPlaylist(novaPlaylist);
+        Playlist novaPlaylist = new CustomPlaylist(nome, u);
+        u.getLibrary().adicionarPlaylist(novaPlaylist);
     }
 
     /**
@@ -491,14 +491,14 @@ public class SpotifUM implements Serializable {
      */
     public void geraListFavoritos(User user, int limite) throws PoucasMusicasException {
         String nome = "Lista de Favoritos";
-        if (user.getBiblioteca().getPlaylists().containsKey(nome)) {
-            user.getBiblioteca().removerPlaylist(nome);
+        if (user.getLibrary().getPlaylists().containsKey(nome)) {
+            user.getLibrary().removerPlaylist(nome);
         }
         if (user.getNumMusicasOuvidas() < 10) {
             throw new PoucasMusicasException("Ouça pelo menos 10 músicas para poder ter acesso à lista de favoritos!");
         }
 
-        ListaFavoritos favs = new ListaFavoritos(nome, user);
+        FavouriteList favs = new FavouriteList(nome, user);
         user.getListeningHistory().entrySet().stream()
                 .sorted((m1, m2) -> Integer.compare(m2.getValue().size(), m1.getValue().size()))
                 .limit(limite)
@@ -513,8 +513,8 @@ public class SpotifUM implements Serializable {
      * @param user          utilizador
      * @return
      */
-    public PlaylistAleatoria geraPlaylistAleatoria(String nome, int numMaxMusicas, User user) throws PoucasMusicasException {
-        PlaylistAleatoria pa = new PlaylistAleatoria(nome, user);
+    public RandomPlaylist geraPlaylistAleatoria(String nome, int numMaxMusicas, User user) throws PoucasMusicasException {
+        RandomPlaylist pa = new RandomPlaylist(nome, user);
         List<Album> as = this.albuns.values().stream().toList();
         int totalMusicas = getTotalMusicas();
         if (totalMusicas == 0) {
@@ -523,7 +523,7 @@ public class SpotifUM implements Serializable {
         if (numMaxMusicas > totalMusicas) {
             numMaxMusicas = totalMusicas;
         }
-        while (pa.getMusicas().size() < numMaxMusicas) {
+        while (pa.getMusics().size() < numMaxMusicas) {
             int r1 = random.nextInt(as.size());
             Album album = as.get(r1);
             List<Music> ms = album.getMusicas().values().stream().toList();
@@ -532,7 +532,7 @@ public class SpotifUM implements Serializable {
             }
             int r2 = random.nextInt(ms.size());
             Music music = ms.get(r2);
-            if (!pa.getMusicas().containsKey(music.getTitle())) {
+            if (!pa.getMusics().containsKey(music.getTitle())) {
                 pa.adicionarMusica(music);
             }
         }
@@ -551,13 +551,13 @@ public class SpotifUM implements Serializable {
      * @throws NomeJaExisteException caso o nome já esteja a ser usado
      */
     public void geraListaGeneroTempo(String nome, String genero, int tempoMaximo, User u, int numMusicas) throws NomeJaExisteException, PoucasMusicasException {
-        if (u.getBiblioteca().getPlaylists().containsKey(nome)) {
+        if (u.getLibrary().getPlaylists().containsKey(nome)) {
             throw new NomeJaExisteException("Já existe uma playlist com o nome " + nome);
         }
         if (getTotalMusicas() == 0) {
             throw new PoucasMusicasException("Não existem músicas suficientes para gerar uma lista!");
         }
-        ListaGeneroTempo lgt = new ListaGeneroTempo(nome, u);
+        GenreList lgt = new GenreList(nome, u);
         int i = 0;
         for (Album album : this.albuns.values()) {
             for (Music m : album.getMusicas().values()) {
@@ -565,15 +565,15 @@ public class SpotifUM implements Serializable {
                     lgt.adicionarMusica(m);
                     i++;
                     if (i >= numMusicas) {
-                        u.getBiblioteca().adicionarPlaylist(lgt);
+                        u.getLibrary().adicionarPlaylist(lgt);
                         return;
                     }
                 }
             }
         }
 
-        if (!lgt.getMusicas().isEmpty()) {
-            u.getBiblioteca().adicionarPlaylist(lgt);
+        if (!lgt.getMusics().isEmpty()) {
+            u.getLibrary().adicionarPlaylist(lgt);
         }
     }
 
@@ -629,8 +629,8 @@ public class SpotifUM implements Serializable {
         removeMusicas(album);
         this.albuns.remove(album.getName());
         for (User u : this.utilizadores.values()) {
-            if (u.getBiblioteca().getAlbuns().containsKey(album.getName())) {
-                u.getBiblioteca().removerAlbum(album.getName());
+            if (u.getLibrary().getAlbums().containsKey(album.getName())) {
+                u.getLibrary().removerAlbum(album.getName());
             }
         }
     }
@@ -654,12 +654,12 @@ public class SpotifUM implements Serializable {
      */
     private void removeMusicaUsers(Music m) {
         for (User u : this.utilizadores.values()) {
-            if (u.getBiblioteca().getMusicas().containsKey(m.getTitle())) {
-                u.getBiblioteca().getMusicas().remove(m.getTitle());
+            if (u.getLibrary().getMusicas().containsKey(m.getTitle())) {
+                u.getLibrary().getMusicas().remove(m.getTitle());
             }
-            for (Playlist p : u.getBiblioteca().getPlaylists().values()) {
-                if (p.getMusicas().containsKey(m.getTitle())) {
-                    p.getMusicas().remove(m.getTitle());
+            for (Playlist p : u.getLibrary().getPlaylists().values()) {
+                if (p.getMusics().containsKey(m.getTitle())) {
+                    p.getMusics().remove(m.getTitle());
                 }
             }
         }
@@ -677,10 +677,10 @@ public class SpotifUM implements Serializable {
         if (!user.getPlano().canSavePlaylist()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
-        if (user.getBiblioteca().getPlaylists().containsKey(playlist.getNome())) {
+        if (user.getLibrary().getPlaylists().containsKey(playlist.getName())) {
             throw new PlaylistJaGuardadaException("Uma playlist com o mesmo nome já está guardada!");
         }
-        user.getBiblioteca().adicionarPlaylist(playlist);
+        user.getLibrary().adicionarPlaylist(playlist);
     }
 
     /**
@@ -690,17 +690,17 @@ public class SpotifUM implements Serializable {
      * @throws UserNotFoundException caso o utilizador que a criou não exista
      */
     public void removePlaylist(Playlist playlist) throws UserNotFoundException {
-        User criador = this.utilizadores.get(playlist.getCriador().getName());
+        User criador = this.utilizadores.get(playlist.getCreator().getName());
         if (criador == null) {
             throw new UserNotFoundException("User não encontrado!");
         }
-        if (!criador.getBiblioteca().getPlaylists().containsKey(playlist.getNome())) {
+        if (!criador.getLibrary().getPlaylists().containsKey(playlist.getName())) {
             throw new PlaylistNaoExisteException("Playlist não encontrada!");
         }
-        criador.getBiblioteca().removerPlaylist(playlist.getNome());
+        criador.getLibrary().removerPlaylist(playlist.getName());
         for (User u : this.utilizadores.values()) {
-            if (u.getBiblioteca().getPlaylists().containsKey(playlist.getNome())) {
-                u.getBiblioteca().removerPlaylist(playlist.getNome());
+            if (u.getLibrary().getPlaylists().containsKey(playlist.getName())) {
+                u.getLibrary().removerPlaylist(playlist.getName());
             }
         }
     }

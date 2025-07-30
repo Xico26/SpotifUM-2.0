@@ -2,39 +2,50 @@ package io.github.xico26.spotifum2.model.entity.playlist;
 
 import io.github.xico26.spotifum2.model.entity.User;
 import io.github.xico26.spotifum2.model.entity.music.Music;
+import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.util.*;
 
-/**
- * Classe abstrata que implementa uma playlist, uma lista de músicas com um nome associadas a um utilizador. Podem ser públicas ou não.
- */
-public abstract class Playlist implements Serializable {
-    protected String nome;
-    protected Map<String, Music> musicas;
+@Entity
+@Table(name="playlist")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name="type")
+public abstract class Playlist {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Column(name="name")
+    protected String name;
+
+    @ManyToMany
+    @JoinTable(name="playlist_music",
+            joinColumns = @JoinColumn(name="playlist_id"),
+            inverseJoinColumns = @JoinColumn(name="music_id"))
+    protected List<Music> musics;
+
+    @Column(name="is_public")
     protected boolean isPublic;
-    protected User criador;
+
+    @ManyToOne(optional=false)
+    @JoinColumn(name="user_id", nullable=false)
+    protected User creator;
 
     /**
      * Construtor por omissão.
      */
     public Playlist() {
-        this.nome = "";
-        this.musicas = new HashMap<String, Music>();
+        this.name = "";
+        this.musics = new ArrayList<Music>();
         this.isPublic = false;
-        this.criador = null;
     }
 
-    /**
-     * Construtor parametrizado. Aceita:
-     * @param nome nome da playlist
-     * @param criador utilizador que cria a playlist
-     */
-    public Playlist(String nome, User criador) {
-        this.nome = nome;
-        this.musicas = new HashMap<String, Music>();
+    public Playlist(String name, User creator) {
+        this.name = name;
+        this.musics = new ArrayList<Music>();
         this.isPublic = false;
-        this.criador = criador;
+        this.creator = creator;
     }
 
     /**
@@ -42,49 +53,35 @@ public abstract class Playlist implements Serializable {
      * @param p playlist a copiar
      */
     public Playlist (Playlist p) {
-        this.nome = p.getNome();
-        this.musicas = p.getMusicas();
+        this.name = p.getName();
+        this.musics = p.getMusics();
         this.isPublic = p.isPublic();
-        this.criador = p.getCriador();
+        this.creator = p.getCreator();
     }
 
     /**
      * Devolve o nome da playlist.
      * @return nome
      */
-    public String getNome() {
-        return this.nome;
+    public String getName() {
+        return this.name;
     }
 
     /**
      * Devolve as músicas da playlist.
      * @return músicas
      */
-    public Map<String, Music> getMusicas() {
-        Map<String, Music> musicasClone = new HashMap<String, Music>();
-        for (Map.Entry<String, Music> m : this.musicas.entrySet()) {
-            musicasClone.put(m.getKey(), m.getValue());
-        }
-        return musicasClone;
+    public List<Music> getMusics() {
+        return this.musics;
     }
 
-    /**
-     * Atualiza o nome da playlist.
-     * @param nome novo nome
-     */
-    public void setNome (String nome) {
-        this.nome = nome;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    /**
-     * Atualiza as músicas da playlist.
-     * @param cs novas músicas.
-     */
-    public void setMusicas(Map<String, Music> cs) {
-        this.musicas = new HashMap<String, Music>();
-        for (Map.Entry<String, Music> c : cs.entrySet()) {
-            this.musicas.put(c.getKey(), c.getValue().clone());
-        }
+
+    public void setMusics(List<Music> ms) {
+        this.musics = new ArrayList<>(ms);
     }
 
     /**
@@ -92,7 +89,7 @@ public abstract class Playlist implements Serializable {
      * @param music música a adicionar
      */
     public void adicionarMusica(Music music) {
-        this.musicas.put(music.getTitle(), music);
+        this.musics.add(music);
     }
 
     /**
@@ -115,8 +112,8 @@ public abstract class Playlist implements Serializable {
      * Devolve o criador da playlist.
      * @return utilizador
      */
-    public User getCriador() {
-        return this.criador;
+    public User getCreator() {
+        return this.creator;
     }
 
     /**
@@ -130,7 +127,7 @@ public abstract class Playlist implements Serializable {
      * @return hash code
      */
     public int hashCode() {
-        return (int) (this.nome.hashCode() + this.musicas.hashCode()) * 17;
+        return (int) (this.name.hashCode() + this.musics.hashCode()) * 17;
     }
 
     /**
@@ -146,7 +143,7 @@ public abstract class Playlist implements Serializable {
             return false;
         }
         Playlist p = (Playlist) o;
-        return (this.nome.equals(p.getNome())) && (this.isPublic == p.isPublic) && (this.musicas.equals(p.getMusicas()));
+        return (this.name.equals(p.getName())) && (this.isPublic == p.isPublic) && (this.musics.equals(p.getMusics()));
     }
 
     /**
@@ -154,6 +151,6 @@ public abstract class Playlist implements Serializable {
      * @return nome da playlist - criador
      */
     public String toString() {
-        return this.nome + " - Criada por: " + this.criador.getName();
+        return this.name + " - Criada por: " + this.creator.getName();
     }
 }

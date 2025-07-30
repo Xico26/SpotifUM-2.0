@@ -1,27 +1,23 @@
 package io.github.xico26.spotifum2.model.entity.playlist;
 
 import io.github.xico26.spotifum2.model.entity.User;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
 import java.io.Serializable;
 
-/**
- * Lista com músicas de um dado género com duração inferior a um determinado valor. Tipo de playlist.
- */
-public class ListaGeneroTempo extends Playlist implements Serializable {
-    /**
-     * Construtor parametrizado. Aceita:
-     * @param nome nome da playlist
-     * @param criador utilizador que cria a playlist
-     */
-    public ListaGeneroTempo(String nome, User criador) {
-        super (nome, criador);
+@Entity
+@DiscriminatorValue("genre")
+public class GenreList extends Playlist {
+    public GenreList() {
+        super();
     }
 
-    /**
-     * Construtor de cópia. Aceita:
-     * @param p playlist a copiar
-     */
-    public ListaGeneroTempo(ListaGeneroTempo p) {
+    public GenreList(String name, User creator) {
+        super (name, creator);
+    }
+
+    public GenreList(GenreList p) {
         super(p);
     }
 
@@ -29,8 +25,8 @@ public class ListaGeneroTempo extends Playlist implements Serializable {
      * Clona uma lista usando o construtor de cópia.
      * @return lista clonada
      */
-    public ListaGeneroTempo clone () {
-        return new ListaGeneroTempo(this);
+    public GenreList clone () {
+        return new GenreList(this);
     }
 
     /**
@@ -53,7 +49,7 @@ public class ListaGeneroTempo extends Playlist implements Serializable {
         if ((o == null) || (this.getClass() != o.getClass())) {
             return false;
         }
-        ListaGeneroTempo l = (ListaGeneroTempo) o;
+        GenreList l = (GenreList) o;
         return super.equals(l);
     }
 

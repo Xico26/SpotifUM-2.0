@@ -3,11 +3,9 @@ package io.github.xico26.spotifum2.model.entity.music;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
-import java.io.Serializable;
-
 @Entity
 @DiscriminatorValue("EXPLICIT")
-public class ExplicitMusic extends Music implements IExplicitMusic, Serializable {
+public class ExplicitMusic extends Music implements IExplicitMusic {
     /**
      * Construtor por omissão.
      */

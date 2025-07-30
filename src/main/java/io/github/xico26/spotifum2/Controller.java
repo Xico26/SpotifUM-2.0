@@ -8,8 +8,8 @@ import io.github.xico26.spotifum2.model.entity.plan.FreePlan;
 import io.github.xico26.spotifum2.model.entity.plan.PlusPlan;
 import io.github.xico26.spotifum2.model.entity.plan.PremiumPlan;
 import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
-import io.github.xico26.spotifum2.model.entity.playlist.PlaylistAleatoria;
-import io.github.xico26.spotifum2.model.entity.playlist.PlaylistConstruida;
+import io.github.xico26.spotifum2.model.entity.playlist.RandomPlaylist;
+import io.github.xico26.spotifum2.model.entity.playlist.CustomPlaylist;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -112,7 +112,7 @@ public class Controller {
             return;
         }
         scanner.nextLine();
-        PlaylistAleatoria pa = null;
+        RandomPlaylist pa = null;
         try {
             pa = this.modelo.geraPlaylistAleatoria(nome, num, currentUser);
         } catch (PoucasMusicasException e) {
@@ -125,7 +125,7 @@ public class Controller {
         boolean aReproduzir = true;
         Random r = new Random();
         System.out.println("\nA REPRODUZIR A PLAYLIST ALEATÓRIA");
-        List<Music> music = new ArrayList<Music>(pa.getMusicas().values().stream().toList());
+        List<Music> music = new ArrayList<Music>(pa.getMusics().values().stream().toList());
 
         if (music.isEmpty()) {
             System.out.println("Lista vazia!");
@@ -508,7 +508,7 @@ public class Controller {
      * Metodo intermédio para explorar playlists guardadas.
      */
     private void explorarPlaylists() {
-        List<Playlist> playlistsGuardadas = new ArrayList<Playlist>(this.currentUser.getBiblioteca().getPlaylists().values());
+        List<Playlist> playlistsGuardadas = new ArrayList<Playlist>(this.currentUser.getLibrary().getPlaylists().values());
 
         if (playlistsGuardadas.isEmpty()) {
             System.out.println("Sem playlists guardadas!");
@@ -522,7 +522,7 @@ public class Controller {
      * Metodo intermédio para explorar álbuns guardados.
      */
     private void explorarAlbuns() {
-        List<Album> albunsGuardados = new ArrayList<Album>(this.currentUser.getBiblioteca().getAlbuns().values());
+        List<Album> albunsGuardados = new ArrayList<Album>(this.currentUser.getLibrary().getAlbums().values());
 
         if (albunsGuardados.isEmpty()) {
             System.out.println("Sem álbuns guardados!");
@@ -536,7 +536,7 @@ public class Controller {
      * Metodo intermédio para explorar músicas guardadas.
      */
     private void explorarMusicas() {
-        List<Music> musicasGuardadas = new ArrayList<Music>(this.currentUser.getBiblioteca().getMusicas().values());
+        List<Music> musicasGuardadas = new ArrayList<Music>(this.currentUser.getLibrary().getMusicas().values());
         if (musicasGuardadas.isEmpty()) {
             System.out.println("Sem músicas guardadas!");
             return;
@@ -642,7 +642,7 @@ public class Controller {
             System.out.println("Nenhuma playlist encontrada!");
             return;
         }
-        String[] nomesPlaylists = playlists.stream().map(Playlist::getNome).toArray(String[]::new);
+        String[] nomesPlaylists = playlists.stream().map(Playlist::getName).toArray(String[]::new);
         Menu menuListaPlaylists = new Menu("playlists encontradas", nomesPlaylists);
         for (int i = 0; i < playlists.size(); i++) {
             int index = i;
@@ -706,22 +706,22 @@ public class Controller {
     private void adicionaMusicaPlaylist(Music music) {
         System.out.println("+.:+ <ADICIONAR MÚSICA A PLAYLIST> +.:+");
 
-        List<Playlist> playlists = currentUser.getBiblioteca().getPlaylists().values().stream().filter(p -> p.getCriador().equals(currentUser)).toList();
+        List<Playlist> playlists = currentUser.getLibrary().getPlaylists().values().stream().filter(p -> p.getCriador().equals(currentUser)).toList();
         if (playlists.isEmpty()) {
             System.out.println("Nenhuma playlist encontrada!");
             return;
         }
-        String[] nomesPlaylists = playlists.stream().map(Playlist::getNome).toArray(String[]::new);
+        String[] nomesPlaylists = playlists.stream().map(Playlist::getName).toArray(String[]::new);
         Menu menuListaPlaylists = new Menu("escolha a playlist", nomesPlaylists);
         for (int i = 0; i < playlists.size(); i++) {
             int index = i;
             menuListaPlaylists.setHandler(index+1,() -> {
                 Playlist playlist = playlists.get(index);
-                if (!currentUser.getBiblioteca().getPlaylists().containsKey(playlist.getNome())) {
+                if (!currentUser.getLibrary().getPlaylists().containsKey(playlist.getName())) {
                     System.out.println("A playlist não existe!");
                 }
-                Playlist p = currentUser.getBiblioteca().getPlaylists().get(playlist.getNome());
-                if (p.getMusicas().containsKey(music.getTitle())) {
+                Playlist p = currentUser.getLibrary().getPlaylists().get(playlist.getName());
+                if (p.getMusics().containsKey(music.getTitle())) {
                     System.out.println("Música já guardada!");
                 }
                 p.adicionarMusica(music);
@@ -890,12 +890,12 @@ public class Controller {
         });
         menuPlaylist.setPreCondition(1, () -> loggedIn);
         menuPlaylist.setPreCondition(3, () -> loggedIn && playlist.isPublic());
-        menuPlaylist.setPreCondition(4, () -> !playlist.isPublic() && (isAdmin || playlist.getCriador().equals(currentUser)));
-        menuPlaylist.setPreCondition(5, () -> playlist.isPublic() && (isAdmin || playlist.getCriador().equals(currentUser)));
-        menuPlaylist.setPreCondition(6, () -> isAdmin || playlist.getCriador().equals(currentUser));
+        menuPlaylist.setPreCondition(4, () -> !playlist.isPublic() && (isAdmin || playlist.getCreator().equals(currentUser)));
+        menuPlaylist.setPreCondition(5, () -> playlist.isPublic() && (isAdmin || playlist.getCreator().equals(currentUser)));
+        menuPlaylist.setPreCondition(6, () -> isAdmin || playlist.getCreator().equals(currentUser));
 
         menuPlaylist.setHandler(1, () -> reproduzPlaylist(playlist));
-        menuPlaylist.setHandler(2, () -> imprimeListaMusicas(playlist.getMusicas().values().stream().toList()));
+        menuPlaylist.setHandler(2, () -> imprimeListaMusicas(playlist.getMusics().values().stream().toList()));
         menuPlaylist.setHandler(3, () -> {
             try {
                 this.modelo.adicionaPlaylistBiblioteca(currentUser, playlist);
@@ -923,16 +923,16 @@ public class Controller {
      * @param playlist
      */
     public void reproduzPlaylist(Playlist playlist) {
-        if (playlist instanceof PlaylistConstruida) {
+        if (playlist instanceof CustomPlaylist) {
             if (currentUser.getPlano().podeOuvirPlaylistConstruida()) {
-                List<Music> music = new ArrayList<Music>(playlist.getMusicas().values().stream().toList());
-                reproduzListaMusicas(playlist.getNome(), music);
+                List<Music> music = new ArrayList<Music>(playlist.getMusics().values().stream().toList());
+                reproduzListaMusicas(playlist.getName(), music);
             } else {
                 System.out.println("O plano atual só permite ouvir playlists aleatórias!");
             }
-        } else if (playlist instanceof PlaylistAleatoria) {
-            List<Music> music = new ArrayList<Music>(playlist.getMusicas().values().stream().toList());
-            reproduzListaMusicas(playlist.getNome(), music);
+        } else if (playlist instanceof RandomPlaylist) {
+            List<Music> music = new ArrayList<Music>(playlist.getMusics().values().stream().toList());
+            reproduzListaMusicas(playlist.getName(), music);
         }
     }
 
