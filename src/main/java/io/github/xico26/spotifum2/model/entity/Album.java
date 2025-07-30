@@ -157,6 +157,7 @@ public class Album {
      * @return true / false
      */
     public boolean temMusica (String nome) {
+        TypedQuery<Music> query = 
         return this.musicas.containsKey(nome);
     }
 
