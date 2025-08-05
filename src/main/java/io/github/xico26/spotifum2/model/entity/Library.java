@@ -47,7 +47,7 @@ public class Library {
     public Library(Library b) {
         this.savedAlbums = new HashSet<Album>(b.getAlbums());
         this.savedPlaylists = new HashSet<Playlist>(b.getPlaylists());
-        this.savedMusics = new HashSet<Music>(b.getMusicas());
+        this.savedMusics = new HashSet<Music>(b.getMusics());
     }
 
     // Constructor with user

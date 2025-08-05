@@ -435,15 +435,15 @@ public class SpotifUM implements Serializable {
      *
      * @param user  utilizador
      * @param album álbum
-     * @throws AlbumJaGuardadoException caso o álbum já esteja guardado
+     * @throws AlbumAlreadySavedException caso o álbum já esteja guardado
      * @throws SemPermissoesException   caso o utilizador não tenha permissões para o fazer
      */
-    public void adicionaAlbumFavorito(User user, Album album) throws AlbumJaGuardadoException, SemPermissoesException {
+    public void adicionaAlbumFavorito(User user, Album album) throws AlbumAlreadySavedException, SemPermissoesException {
         if (!user.getPlano().canSaveAlbum()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
         if (user.getLibrary().getAlbums().containsKey(album.getName())) {
-            throw new AlbumJaGuardadoException("O álbum já está guardado!");
+            throw new AlbumAlreadySavedException("O álbum já está guardado!");
         }
         user.getLibrary().adicionarAlbum(album);
     }
@@ -595,7 +595,6 @@ public class SpotifUM implements Serializable {
             throw new NomeJaExisteException(nome);
         }
         Music m = new Music(nome, interprete, genero, editora, letra, caracteres, duracao);
-        this.albuns.get(nomeAlbum).addMusic(m.clone());
     }
 
     /**
@@ -670,15 +669,15 @@ public class SpotifUM implements Serializable {
      *
      * @param user     utilizador
      * @param playlist playlist
-     * @throws PlaylistJaGuardadaException caso a playlist já esteja guardada
+     * @throws PlaylistAlreadySavedException caso a playlist já esteja guardada
      * @throws SemPermissoesException      caso o utilizador não tenha permissões
      */
-    public void adicionaPlaylistBiblioteca(User user, Playlist playlist) throws PlaylistJaGuardadaException, SemPermissoesException {
+    public void adicionaPlaylistBiblioteca(User user, Playlist playlist) throws PlaylistAlreadySavedException, SemPermissoesException {
         if (!user.getPlano().canSavePlaylist()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
         if (user.getLibrary().getPlaylists().containsKey(playlist.getName())) {
-            throw new PlaylistJaGuardadaException("Uma playlist com o mesmo nome já está guardada!");
+            throw new PlaylistAlreadySavedException("Uma playlist com o mesmo nome já está guardada!");
         }
         user.getLibrary().adicionarPlaylist(playlist);
     }

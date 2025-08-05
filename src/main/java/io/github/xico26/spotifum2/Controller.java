@@ -761,7 +761,7 @@ public class Controller {
         menuAlbum.setHandler(3, () -> {
             try {
                 this.modelo.adicionaAlbumFavorito(currentUser, album);
-            } catch (AlbumJaGuardadoException | SemPermissoesException e) {
+            } catch (AlbumAlreadySavedException | SemPermissoesException e) {
                 System.out.println(e.getMessage());
                 return;
             }
@@ -904,7 +904,7 @@ public class Controller {
         menuPlaylist.setHandler(3, () -> {
             try {
                 this.modelo.adicionaPlaylistBiblioteca(currentUser, playlist);
-            } catch (PlaylistJaGuardadaException | SemPermissoesException e) {
+            } catch (PlaylistAlreadySavedException | SemPermissoesException e) {
                 System.out.println(e.getMessage());
                 return;
             }
