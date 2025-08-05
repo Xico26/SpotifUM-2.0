@@ -1,6 +1,5 @@
 package io.github.xico26.spotifum2.model.entity;
 
-import io.github.xico26.spotifum2.exceptions.MusicaNaoExisteException;
 import io.github.xico26.spotifum2.model.entity.music.Music;
 import jakarta.persistence.*;
 
@@ -141,35 +140,6 @@ public class Album {
 
     public void setMusics(List<Music> ms) {
         this.musics = new ArrayList<Music>(ms);
-    }
-
-    /**
-     * Adiciona música ao álbum
-     * @param m música
-     */
-    public void addMusic (Music m) {
-        this.musics.add(m);
-    }
-
-    /**
-     * Diz se um álbum contém ou não uma música
-     * @param nome nome da música
-     * @return true / false
-     */
-    public boolean temMusica (String nome) {
-        TypedQuery<Music> query = 
-        return this.musicas.containsKey(nome);
-    }
-
-    /**
-     * Remove uma música do álbum
-     * @param nome nome da música
-     */
-    public void removeMusica (String nome) {
-        if (!this.musicas.containsKey(nome)) {
-            throw new MusicaNaoExisteException(nome);
-        }
-        this.musicas.remove(nome);
     }
 
     /**

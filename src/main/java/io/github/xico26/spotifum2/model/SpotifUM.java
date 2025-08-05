@@ -162,10 +162,10 @@ public class SpotifUM implements Serializable {
      *
      * @param user   utilizador
      * @param music música
-     * @throws MusicaJaGuardadaException caso a música já esteja guardada
+     * @throws MusicAlreadySavedException caso a música já esteja guardada
      * @throws SemPermissoesException    caso o utilizador não tenha permissões para o fazer
      */
-    public void adicionaMusicaFavorita(User user, Music music) throws MusicaJaGuardadaException, SemPermissoesException {
+    public void adicionaMusicaFavorita(User user, Music music) throws MusicAlreadySavedException, SemPermissoesException {
         if (!user.getPlano().canSaveAlbum()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
@@ -620,11 +620,11 @@ public class SpotifUM implements Serializable {
      * Remove um álbum do sistema
      *
      * @param album álbum a remover
-     * @throws AlbumNaoExisteException caso o álbum não exista
+     * @throws AlbumNotFoundException caso o álbum não exista
      */
-    public void removeAlbum(Album album) throws AlbumNaoExisteException {
+    public void removeAlbum(Album album) throws AlbumNotFoundException {
         if (!this.albuns.containsKey(album.getName())) {
-            throw new AlbumNaoExisteException(album.getName());
+            throw new AlbumNotFoundException(album.getName());
         }
         removeMusicas(album);
         this.albuns.remove(album.getName());

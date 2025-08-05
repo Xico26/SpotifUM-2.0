@@ -73,6 +73,14 @@ public class Music {
         this.album = m.getAlbum();
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     /**
      * Devolve o nome
      * @return nome

@@ -110,6 +110,26 @@ public class User {
         this.library = new Library(u.getLibrary());
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
+
+    public boolean isWantsExplicit() {
+        return wantsExplicit;
+    }
+
+    public void setListeningHistory(List<ListeningRecord> listeningHistory) {
+        this.listeningHistory = listeningHistory;
+    }
+
     /**
      * Devolve o nome de utilizador.
      * @return nome de utilizador
@@ -286,41 +306,6 @@ public class User {
     }
 
     /**
-     * Diz se o utilizador ouviu uma determinada música.
-     * @param m música
-     * @return true / false
-     */
-    public boolean ouviuMusica (Music m) {
-        return this.musicasOuvidas.containsKey(m);
-    }
-
-    /**
-     * Devolve o número de músicas ouvidas.
-     * @return número de músicas ouvidas
-     */
-    public int getNumMusicasOuvidas() {
-        return this.musicasOuvidas.size();
-    }
-
-    /**
-     * Regista a reprodução de uma música.
-     * Caso seja a primeira vez, adiciona a música ao histórico.
-     * Também adiciona pontos ao utilizador com base no plano de subscrição.
-     * @param m música reproduzida
-     */
-    public void registaReproducaoMusica (Music m) {
-        this.getPlano().addPoints(m, this);
-        LocalDateTime agora = LocalDateTime.now();
-        if (this.musicasOuvidas.containsKey(m)) {
-            this.musicasOuvidas.get(m).add(agora);
-        } else {
-            List<LocalDateTime> datas = new ArrayList<>();
-            datas.add(agora);
-            this.musicasOuvidas.put(m, datas);
-        }
-    }
-
-    /**
      * Devolve a library do utilizador.
      * @return library
      */
@@ -346,13 +331,6 @@ public class User {
 
     public void setWantsExplicit(boolean wantsExplicit) {
         this.wantsExplicit = wantsExplicit;
-    }
-
-    /**
-     * Apaga o histórico de músicas ouvidas.
-     */
-    public void apagaHistorico() {
-        this.musicasOuvidas.clear();
     }
 
     /**

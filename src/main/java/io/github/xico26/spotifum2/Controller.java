@@ -1,5 +1,7 @@
 package io.github.xico26.spotifum2;
 
+import io.github.xico26.spotifum2.dao.AlbumDAO;
+import io.github.xico26.spotifum2.dao.AlbumDAOImpl;
 import io.github.xico26.spotifum2.exceptions.*;
 import io.github.xico26.spotifum2.model.*;
 import io.github.xico26.spotifum2.model.entity.*;
@@ -27,6 +29,9 @@ public class Controller {
     private boolean loggedIn = false;
     private User currentUser;
     private boolean isAdmin = false;
+
+    // DAOs
+    private static final AlbumDAO albumDAO = new AlbumDAOImpl();
 
     /**
      * Construtor parametrizado de modelo. Aceita o modelo
@@ -99,7 +104,7 @@ public class Controller {
      * Menu que serve como UI para geração de playlist aleatória, que pode depois é reproduzida.
      */
     private void ouvirPlaylistAleatoria() {
-        System.out.println("+.:+ <OUVIR PLAYLIST ALEATÓRIA> +.:+");
+        System.out.println("== OUVIR PLAYLIST ALEATÓRIA ==");
         System.out.print("Introduza o nome da playlist: ");
         String nome = scanner.nextLine();
         System.out.print("Introduza o número de músicas a adicionar: ");
@@ -686,7 +691,7 @@ public class Controller {
         menuMusica.setHandler(3, () -> {
             try {
                 this.modelo.adicionaMusicaFavorita(currentUser, music);
-            } catch (MusicaJaGuardadaException | SemPermissoesException e) {
+            } catch (MusicAlreadySavedException | SemPermissoesException e) {
                 System.out.println(e.getMessage());
                 return;
             }
@@ -766,7 +771,7 @@ public class Controller {
         menuAlbum.setHandler(5, () -> {
             try {
                 this.modelo.removeAlbum(album);
-            } catch (AlbumNaoExisteException e) {
+            } catch (AlbumNotFoundException e) {
                 System.out.println(e.getMessage());
             }
         });
