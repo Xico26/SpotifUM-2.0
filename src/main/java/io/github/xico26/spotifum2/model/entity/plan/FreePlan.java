@@ -20,7 +20,7 @@ public class FreePlan implements ISubscriptionPlan, Serializable {
         return false;
     }
 
-    public boolean podeGerarListaFavoritos() {
+    public boolean canGenerateFavouritesList() {
         return false;
     }
 
@@ -45,7 +45,7 @@ public class FreePlan implements ISubscriptionPlan, Serializable {
     }
 
     public void addPoints(Music music, User user) {
-        user.adicionarPontos(pontosPorMusica);
+        user.addPoints(pontosPorMusica);
     }
 
     public static int getPontosPorMusica() {

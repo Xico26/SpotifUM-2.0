@@ -41,6 +41,18 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    public User findByEmail(String email) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<User> query = em.createQuery("SELECT u FROM User u WHERE u.email=:email", User.class);
+            query.setParameter("email", email);
+            return query.getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
     public void save(User u) {
         EntityManager em = emf.createEntityManager();
         EntityTransaction tx = em.getTransaction();

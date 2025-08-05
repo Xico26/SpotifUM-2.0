@@ -1,14 +1,8 @@
 package io.github.xico26.spotifum2;
 
-import io.github.xico26.spotifum2.dao.AlbumDAO;
-import io.github.xico26.spotifum2.dao.AlbumDAOImpl;
 import io.github.xico26.spotifum2.exceptions.*;
-import io.github.xico26.spotifum2.model.*;
 import io.github.xico26.spotifum2.model.entity.*;
 import io.github.xico26.spotifum2.model.entity.music.Music;
-import io.github.xico26.spotifum2.model.entity.plan.FreePlan;
-import io.github.xico26.spotifum2.model.entity.plan.PlusPlan;
-import io.github.xico26.spotifum2.model.entity.plan.PremiumPlan;
 import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
 import io.github.xico26.spotifum2.model.entity.playlist.RandomPlaylist;
 import io.github.xico26.spotifum2.model.entity.playlist.CustomPlaylist;
@@ -48,30 +42,17 @@ public class Controller {
     }
 
     /**
-     * Menu inicial, invocado ao iniciar a aplicação. Permite começar com um estado vazio, carregar um estado, ou guardar um estado e sair.
+     * Entry point
      */
-    public void run () {
-        Menu menuInicial = new Menu("menu inicial", new String[] {
-                "Começar em branco",
-                "Carregar estado",
-                "Guardar Estado & Sair",
-        });
-
-        menuInicial.setHandler(1, () -> menuPrincipal());
-        menuInicial.setHandler(2, () -> carregaEstado());
-        menuInicial.setHandler(3, () -> {
-            guardaEstado();
-            System.exit(0);
-        });
-
-        menuInicial.run();
+    public void run() {
+        mainMenu();
     }
 
     /**
-     * Menu principal, o ponto de partida para todas as operações que podem ser realizadas. Permite pesquisar, ouvir playlists aleatórias, criar playlists, fazer login/signup, e visualizar estatísticas.
+     * Main menu
      */
-    private void menuPrincipal() {
-        Menu menuPrincipal = new Menu("menu principal", new String[] {
+    private void mainMenu () {
+        Menu mainMenu = new Menu("menu principal", new String[] {
                 "Pesquisar...",
                 "Ouvir Playlist aleatória",
                 "Criar Playlist",
@@ -83,192 +64,100 @@ public class Controller {
                 "Criar Conta"
         });
         // Pré Condições
-        menuPrincipal.setPreCondition(2, () -> loggedIn);
-        menuPrincipal.setPreCondition(3, () -> loggedIn);
-        menuPrincipal.setPreCondition(4, () -> loggedIn);
-        menuPrincipal.setPreCondition(5, () -> loggedIn);
-        menuPrincipal.setPreCondition(6, () -> (loggedIn && isAdmin));
-        menuPrincipal.setPreCondition(7, () -> loggedIn);
-        menuPrincipal.setPreCondition(8, () -> !loggedIn);
-        menuPrincipal.setPreCondition(9, () -> !loggedIn);
+        mainMenu.setPreCondition(2, () -> loggedIn);
+        mainMenu.setPreCondition(3, () -> loggedIn);
+        mainMenu.setPreCondition(4, () -> loggedIn);
+        mainMenu.setPreCondition(5, () -> loggedIn);
+        mainMenu.setPreCondition(6, () -> (loggedIn && isAdmin));
+        mainMenu.setPreCondition(7, () -> loggedIn);
+        mainMenu.setPreCondition(8, () -> !loggedIn);
+        mainMenu.setPreCondition(9, () -> !loggedIn);
 
         // Handlers
-        menuPrincipal.setHandler(1, () -> menuPesquisar());
-        menuPrincipal.setHandler(2, () -> ouvirPlaylistAleatoria());
-        menuPrincipal.setHandler(3, () -> menuCriarPlaylist());
-        menuPrincipal.setHandler(4, () -> menuUtilizador());
-        menuPrincipal.setHandler(5, () -> menuEstatisticas());
-        menuPrincipal.setHandler(6, () -> menuAdministracao());
-        menuPrincipal.setHandler(7, () -> logout());
-        menuPrincipal.setHandler(8, () -> login());
-        menuPrincipal.setHandler(9, () -> signup());
-      
-        menuPrincipal.run();
+        mainMenu.setHandler(1, () -> searchMenu());
+        mainMenu.setHandler(2, () -> ouvirPlaylistAleatoria());
+        mainMenu.setHandler(3, () -> menuCriarPlaylist());
+        mainMenu.setHandler(4, () -> userMenu());
+        mainMenu.setHandler(5, () -> statsMenu());
+        mainMenu.setHandler(6, () -> adminMenu());
+        mainMenu.setHandler(7, () -> logout());
+        mainMenu.setHandler(8, () -> login());
+        mainMenu.setHandler(9, () -> signup());
+
+        mainMenu.run();
     }
 
     /**
-     * Menu que serve como UI para geração de playlist aleatória, que pode depois é reproduzida.
-     */
-    private void ouvirPlaylistAleatoria() {
-        System.out.println("== OUVIR PLAYLIST ALEATÓRIA ==");
-        System.out.print("Introduza o nome da playlist: ");
-        String nome = scanner.nextLine();
-        System.out.print("Introduza o número de músicas a adicionar: ");
-        int num = 0;
-        try {
-            num = scanner.nextInt();
-        } catch (InputMismatchException e) {
-            System.out.println("Input inválido!");
-            scanner.nextLine();
-            return;
-        }
-        scanner.nextLine();
-        RandomPlaylist pa = null;
-        try {
-            pa = this.modelo.geraPlaylistAleatoria(nome, num, currentUser);
-        } catch (PoucasMusicasException e) {
-            System.out.println(e.getMessage());
-            return;
-        }
-        System.out.println("Playlist criada com sucesso!");
-
-        int i = 0;
-        boolean aReproduzir = true;
-        Random r = new Random();
-        System.out.println("\nA REPRODUZIR A PLAYLIST ALEATÓRIA");
-        List<Music> music = new ArrayList<Music>(pa.getMusics().values().stream().toList());
-
-        if (music.isEmpty()) {
-            System.out.println("Lista vazia!");
-            return;
-        }
-
-        while (aReproduzir && i < music.size()) {
-            Music atual = music.get(i);
-            if ((atual.isExplicit() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
-                i++;
-                if (i >= music.size()) {
-                    System.out.println("Fim da lista de músicas!");
-                    aReproduzir = false;
-                }
-                continue;
-            }
-            System.out.println("CONTROLOS DA REPRODUÇÃO:");
-            System.out.println("Enter para continuar, r=Música Aleatória, s=Sair");
-
-            System.out.println("\nA REPRODUZIR MÚSICA: " + atual.toString() + "\n");
-
-            boolean saltou = false;
-
-            String letra = atual.getLyrics();
-            for (String linha : letra) {
-                System.out.print(linha + " ");
-                String cmd = scanner.nextLine();
-
-                switch (cmd.toLowerCase()) {
-                    case "r":
-                        int novoI = i;
-                        while (novoI == i) {
-                            novoI = r.nextInt(music.size());
-                        }
-                        i = novoI;
-                        saltou = true;
-                        break;
-                    case "s":
-                        aReproduzir = false;
-                        break;
-                    default:
-                        break;
-                }
-                if (cmd.toLowerCase().equals("r") || cmd.toLowerCase().equals("s")) {
-                    break;
-                }
-            }
-
-            if (!saltou) {
-                i++;
-                atual.registaReproducao();
-                currentUser.registaReproducaoMusica(atual);
-            }
-
-            if (i >= music.size()) {
-                System.out.println("\nFim da lista de músicas!\n");
-                aReproduzir = false;
-            }
-        }
-    }
-
-    /**
-     * UI para efetuar login.
+     * Login UI
      */
     public void login() {
         User res = null;
-        int tentativas = 0;
+        int tries = 0;
         do {
             System.out.print("Username: ");
             String username = scanner.nextLine();
             System.out.print("Password: ");
             String password = scanner.nextLine();
             try {
-                res = this.modelo.login(username, password);
-            } catch (LoginInvalidoException e) {
+                res = this.userService.login(username, password);
+            } catch (InvalidLoginException e) {
                 System.out.println(e.getMessage());
             }
-            tentativas++;
-            if (tentativas == 3) {
-                System.out.println("Demasiadas tentativas!");
+            tries++;
+            if (tries == 3) {
+                System.out.println("Too many tries!");
                 return;
             }
         } while (res == null);
         this.loggedIn = true;
         this.currentUser = res;
         this.isAdmin = res.isAdmin();
-        System.out.println("Login efetuado com sucesso! Bem vindo, " + currentUser.getName() + "!");
-        menuPrincipal();
+        System.out.println("Login successful! Welcome, " + currentUser.getName() + "!");
+        mainMenu();
     }
 
     /**
-     * Implementa o logout
+     * Logout frontend logic
      */
     public void logout() {
         this.loggedIn = false;
         this.isAdmin = false;
         this.currentUser = null;
         System.out.println("Adeus!");
-        menuPrincipal();
+        mainMenu();
     }
 
     /**
-     * UI para criar uma conta.
+     * Account creation UI.
      */
     public void signup() {
-        System.out.print("Nome: ");
-        String nome = scanner.nextLine();
+        System.out.print("Name: ");
+        String name = scanner.nextLine();
         System.out.print("Username: ");
         String username = scanner.nextLine();
         System.out.print("Email: ");
         String email = scanner.nextLine();
-        System.out.print("Morada: ");
-        String morada = scanner.nextLine();
-        System.out.println("Data de Nascimento");
-        int dia = 0;
-        int mes = 0;
-        int ano = 0;
-        LocalDate dataNascimento = LocalDate.of(2005,1,1);
+        System.out.print("Address: ");
+        String address = scanner.nextLine();
+        System.out.println("Birth Date");
+        int day = 0;
+        int month = 0;
+        int year = 0;
+        LocalDate birthDate = LocalDate.of(2005,1,1);
         try {
-            System.out.print("Dia: ");
-            dia = scanner.nextInt();
-            System.out.print("Mês: ");
-            mes = scanner.nextInt();
-            System.out.print("Ano: ");
-            ano = scanner.nextInt();
-            dataNascimento = LocalDate.of(ano, mes, dia);
+            System.out.print("Day: ");
+            day = scanner.nextInt();
+            System.out.print("Month: ");
+            month = scanner.nextInt();
+            System.out.print("Year: ");
+            year = scanner.nextInt();
+            birthDate = LocalDate.of(year, month, day);
         } catch (InputMismatchException e) {
-            System.out.println("Input inválido!");
+            System.out.println("Invalid input!");
             scanner.nextLine();
             return;
         } catch (DateTimeException e) {
-            System.out.println("Data inválida!");
+            System.out.println("Invalid date!");
             return;
         }
         scanner.nextLine();
@@ -277,192 +166,183 @@ public class Controller {
 
 
         try {
-            this.modelo.criaUtilizador(nome, username, email, morada, dataNascimento, password);
-        } catch (UsernameJaUsadoException | EmailJaUsadoException e) {
+            this.userService.createUser(username, password, name, address, email, birthDate);
+        } catch (InvalidParamsException e) {
             System.out.println(e.getMessage());
             return;
         }
-        System.out.println("Conta criada com sucesso! Pode agora efetuar o login.");
+        System.out.println("Account created successfully! You can now login.");
     }
 
     /**
-     * Menu de pesquisa. Permite pesquisar por músicas, álbuns, playlists e intérpretes.
+     * Search menu
      */
-    public void menuPesquisar() {
-        Menu menuPesquisar = new Menu("pesquisar...", new String[]{
-            "Pesquisar por música",
-            "Pesquisar por álbum",
-            "Pesquisar por playlist",
-            "Pesquisar por intérprete",
+    public void searchMenu() {
+        Menu searchMenu = new Menu("search...", new String[]{
+            "Search for music",
+            "Search for album",
+            "Search for playlist",
+            "Search for artist",
         });
-        menuPesquisar.setHandler(1, () -> menuPesquisarCategoria("musica"));
-        menuPesquisar.setHandler(2, () -> menuPesquisarCategoria("album"));
-        menuPesquisar.setHandler(3, () -> menuPesquisarCategoria("playlist"));
-        menuPesquisar.setHandler(4, () -> menuPesquisarCategoria("interprete"));
+        searchMenu.setHandler(1, () -> categorySearchMenu("music"));
+        searchMenu.setHandler(2, () -> categorySearchMenu("album"));
+        searchMenu.setHandler(3, () -> categorySearchMenu("playlist"));
+        searchMenu.setHandler(4, () -> categorySearchMenu("artist"));
 
-        menuPesquisar.run();
+        searchMenu.run();
     }
 
     /**
-     * Perfil de um utilizador. Permite explorar a biblioteca e aceder às suas definições, para além de poder efetuar logout.
+     * User settings/overview menu.
      */
-    public void menuUtilizador() {
-        Menu menuUtilizador = new Menu("o meu perfil", new String[]{
-            "Explorar biblioteca",
-            "Definições",
+    public void userMenu() {
+        Menu userMenu = new Menu("my profile", new String[]{
+            "Explore library",
+            "Settings",
             "Logout",
         });
-        menuUtilizador.setHandler(1, () -> explorarBiblioteca());
-        menuUtilizador.setHandler(2, () -> menuDefinicoesUtilizador());
-        menuUtilizador.setHandler(3, () -> logout());
+        userMenu.setHandler(1, () -> exploreLibrary());
+        userMenu.setHandler(2, () -> userSettingsMenu());
+        userMenu.setHandler(3, () -> logout());
 
-        menuUtilizador.run();
+        userMenu.run();
     }
 
     /**
      * Menu que contém as definições de um utilizador, como atualizar o plano, mostrar / esconder músicas e apagar a conta.
      */
-    private void menuDefinicoesUtilizador() {
-        Menu menuDefinicoes = new Menu("as minhas definições", new String[] {
-                "Atualizar plano",
-                "Apagar histórico",
-                "As minhas informações",
-                "Mostrar Música Explícita",
-                "Mostrar Música Multimédia",
-                "Deixar de mostrar Música Multimédia",
-                "Deixar de mostrar Música Multimédia",
-                "Passar a administrador",
-                "Apagar conta"
+    private void userSettingsMenu() {
+        Menu userSettingsMenu = new Menu("my settings", new String[] {
+                "Update plan",
+                "Clear listening history",
+                "My informations",
+                "Toggle displaying of explicit music. Currently they are " + (currentUser.wantsExplicit() ? "shown" : "hidden"),
+                "Become administrator",
+                "Delete account"
         });
 
-        menuDefinicoes.setPreCondition(4, () -> !this.currentUser.wantsExplicit());
-        menuDefinicoes.setPreCondition(5, () -> !this.currentUser.querVerMultimedia());
-        menuDefinicoes.setPreCondition(6, () -> this.currentUser.querVerMultimedia());
-        menuDefinicoes.setPreCondition(7, () -> this.currentUser.querVerMultimedia());
-        menuDefinicoes.setPreCondition(8, () -> !isAdmin);
+        userSettingsMenu.setPreCondition(6, () -> !isAdmin);
 
-        menuDefinicoes.setHandler(1, () -> menuAtualizarPlano());
-        menuDefinicoes.setHandler(2, () -> this.modelo.apagaHistorico(currentUser));
-        menuDefinicoes.setHandler(3, () -> menuInformacoes());
-        menuDefinicoes.setHandler(4, () -> this.currentUser.setWantsExplicit(true));
-        menuDefinicoes.setHandler(5, () -> this.currentUser.setQuerVerMultimedia(true));
-        menuDefinicoes.setHandler(6, () -> this.currentUser.setQuerVerMultimedia(false));
-        menuDefinicoes.setHandler(7, () -> this.currentUser.setQuerVerMultimedia(false));
-        menuDefinicoes.setHandler(8, () -> {
+        userSettingsMenu.setHandler(1, () -> updatePlanMenu());
+        userSettingsMenu.setHandler(2, () -> this.listeningRecordService.clearHistory(currentUser));
+        userSettingsMenu.setHandler(3, () -> userInfoMenu());
+        userSettingsMenu.setHandler(4, () -> this.currentUser.setWantsExplicit(!currentUser.wantsExplicit()));
+        userSettingsMenu.setHandler(5, () -> {
             this.currentUser.setIsAdmin(true);
             this.isAdmin = true;
         });
-        menuDefinicoes.setHandler(9, () -> menuApagarConta());
+        userSettingsMenu.setHandler(6, () -> deleteAccountMenu());
 
-        menuDefinicoes.run();
+        userSettingsMenu.run();
     }
 
     /**
-     * UI para seleção do novo plano.
+     * UI for choosing a new plan
      */
-    private void menuAtualizarPlano() {
-        Menu menuPlanos = new Menu("atualizar plano", new String[] {
-                "Base",
+    private void updatePlanMenu() {
+        Menu planMenu = new Menu("update plan", new String[] {
+                "Free",
+                "Plus",
                 "Premium",
-                "Premium Top",
         });
 
-        menuPlanos.setPreCondition(1, () -> !(currentUser.getPlano() instanceof FreePlan));
-        menuPlanos.setPreCondition(2, () -> !(currentUser.getPlano() instanceof PlusPlan));
-        menuPlanos.setPreCondition(3, () -> !(currentUser.getPlano() instanceof PremiumPlan));
+        planMenu.setPreCondition(1, () -> !(currentUser.getSubscriptionPlan().equals("FREE")));
+        planMenu.setPreCondition(2, () -> !(currentUser.getSubscriptionPlan().equals("PLUS")));
+        planMenu.setPreCondition(3, () -> !(currentUser.getSubscriptionPlan().equals("PREMIUM")));
 
-        menuPlanos.setHandler(1, () -> {
-            this.modelo.atualizaPlano(currentUser, new FreePlan());
-            System.out.println("Plano atualizado com sucesso!");
-            menuDefinicoesUtilizador();
+        planMenu.setHandler(1, () -> {
+            this.userService.setPlan(currentUser, "FREE");
+            System.out.println("Plan updated successfully!");
+            userSettingsMenu();
         });
-        menuPlanos.setHandler(2, () -> {
-            this.modelo.atualizaPlano(currentUser, new PlusPlan());
-            System.out.println("Plano atualizado com sucesso!");
-            menuDefinicoesUtilizador();
+        planMenu.setHandler(2, () -> {
+            this.userService.setPlan(currentUser, "PLUS");
+            System.out.println("Plan updated successfully!");
+            userSettingsMenu();
         });
-        menuPlanos.setHandler(3, () -> {
-            this.modelo.atualizaPlano(currentUser, new PremiumPlan());
-            System.out.println("Plano atualizado com sucesso!");
-            menuDefinicoesUtilizador();
+        planMenu.setHandler(3, () -> {
+            this.userService.setPlan(currentUser, "PREMIUM");
+            System.out.println("Plan updated successfully!");
+            userSettingsMenu();
         });
 
-        menuPlanos.run();
+        planMenu.run();
     }
 
     /**
-     * Informações de um utilizador. Imprime o nome, plano, número de pontos, e outras informações.
+     * User info.
      */
-    private void menuInformacoes() {
-        System.out.println("+.:+ <AS MINHAS INFORMAÇÕES> +.:+");
+    private void userInfoMenu() {
+        System.out.println("== MY INFO ==");
         System.out.println("Username: " + currentUser.getUsername());
-        System.out.println("Plano: " + currentUser.getPlano().toString().toUpperCase());
-        System.out.println("Nome: " + currentUser.getName());
+        System.out.println("Plan: " + currentUser.getSubscriptionPlan());
+        System.out.println("Name: " + currentUser.getName());
         System.out.println("Email: " + currentUser.getEmail().toLowerCase());
-        System.out.println("Morada: " + currentUser.getAddress());
-        System.out.println("Data de Nascimento: " + currentUser.getBirthDate().toString());
-        System.out.println("Pontos: " + currentUser.getPoints());
-        System.out.println("Nº. de músicas ouvidas: " + currentUser.getNumMusicasOuvidas());
+        System.out.println("Address: " + currentUser.getAddress());
+        System.out.println("Birth Date: " + currentUser.getBirthDate().toString());
+        System.out.println("Points: " + currentUser.getPoints());
+        System.out.println("Number of musics heard: " + listeningRecordService.getNumListened(currentUser));
 
-        menuDefinicoesUtilizador();
+        userSettingsMenu();
     }
 
     /**
-     * Confirmação antes de apagar conta.
+     * Confirmation before deleting account.
      */
-    private void menuApagarConta() {
-        System.out.print("Tem a certeza de que quer apagar a conta? (S/N)" );
+    private void deleteAccountMenu() {
+        System.out.println("Are you sure you want to delete your account? THIS ACTION IS IRREVERSIBLE.");
+        System.out.print("Please enter your answer (Y/N): ");
         String res = scanner.nextLine();
         switch (res) {
-            case "S":
-                this.modelo.apagaConta(currentUser);
+            case "Y":
+                this.userService.removeUser(currentUser);
                 logout();
                 break;
             case "N":
-                menuUtilizador();
+                userMenu();
                 break;
             default:
-                System.out.println("Resposta inválida!");
-                menuUtilizador();
+                System.out.println("Invalid option!");
+                userMenu();
                 break;
         }
     }
 
     /**
-     * Menu de exploração da biblioteca de um utilizador. Permite explorar músicas, álbuns, playlists, e gerar playlists especiais.
+     * Explore user library.
      */
-    public void explorarBiblioteca() {
-        Menu explorarBiblioteca = new Menu("a minha biblioteca", new String[]{
-            "Ver músicas",
-            "Ver álbuns",
-            "Ver playlists",
-            "Gerar lista de favoritos",
-            "Gerar lista de músicas de género específico",
+    public void exploreLibrary() {
+        Menu exploreLibrary = new Menu("my library", new String[]{
+            "Saved musics",
+            "Saved albums",
+            "Saved playlists",
+            "Generate favourites list",
+            "Generate a list of musics of a specific genre",
         });
-        explorarBiblioteca.setPreCondition(4, () -> currentUser.getPlano().podeGerarListaFavoritos());
-        explorarBiblioteca.setPreCondition(5, () -> currentUser.getPlano().podeCriarListaGenero());
+        exploreLibrary.setPreCondition(4, () -> this.userService.getSubscriptionPlan(currentUser).canGenerateFavouritesList());
+        exploreLibrary.setPreCondition(5, () -> this.userService.getSubscriptionPlan(currentUser).podeCriarListaGenero());
 
-        explorarBiblioteca.setHandler(1, () -> explorarMusicas());
-        explorarBiblioteca.setHandler(2, () -> explorarAlbuns());
-        explorarBiblioteca.setHandler(3, () -> explorarPlaylists());
-        explorarBiblioteca.setHandler(4, () -> gerarListaFavoritos());
-        explorarBiblioteca.setHandler(5, () -> gerarListaGeneroTempo());
+        exploreLibrary.setHandler(1, () -> exploreSavedMusics());
+        exploreLibrary.setHandler(2, () -> exploreSavedAlbums());
+        exploreLibrary.setHandler(3, () -> exploreSavedPlaylists());
+        exploreLibrary.setHandler(4, () -> generateFavouritesList());
+        exploreLibrary.setHandler(5, () -> generateGenreList());
 
-        explorarBiblioteca.run();
+        exploreLibrary.run();
     }
 
     /**
-     * UI para criação de uma lista de favoritos.
+     * UI for generating favourites list.
      */
-    private void gerarListaFavoritos() {
-        System.out.print("+.:+ <GERAR LISTA DE FAVORITOS> +.:+");
+    private void generateFavouritesList() {
+        System.out.print("== GENERATE FAVOURITES LIST ==");
         System.out.println("A lista de favoritos inclui as músicas que mais ouviu. Pode aceder a esta lista a qualquer momento na lista de playlists guardadas, e pode também gerar uma nova lista a qualquer momento.");
-        System.out.print("Introduza o número de músicas a incluir na lista: ");
+        System.out.print("Enter the number of musics to include in the list: ");
         int num = 0;
         try {
             num = scanner.nextInt();
         } catch (InputMismatchException e) {
-            System.out.println("Input inválido!");
+            System.out.println("Invalid input!");
             scanner.nextLine();
             return;
         }
@@ -479,7 +359,7 @@ public class Controller {
     /**
      * UI para criação de uma lista de género e tempo.
      */
-    private void gerarListaGeneroTempo() {
+    private void generateGenreList() {
         System.out.print("+.:+ <GERAR LISTA DE MÚSICAS DE UM GÉNERO> +.:+");
         System.out.println("A lista de músicas de um género inclui músicas de um dado género com duração inferior a um dado valor. Pode aceder a esta lista a qualquer momento na lista de playlists guardadas, e pode também gerar uma nova lista a qualquer momento.");
         System.out.print("Introduza o nome a dar à lista: ");
@@ -518,7 +398,7 @@ public class Controller {
     /**
      * Metodo intermédio para explorar playlists guardadas.
      */
-    private void explorarPlaylists() {
+    private void exploreSavedPlaylists() {
         List<Playlist> playlistsGuardadas = new ArrayList<Playlist>(this.currentUser.getLibrary().getPlaylists().values());
 
         if (playlistsGuardadas.isEmpty()) {
@@ -532,7 +412,7 @@ public class Controller {
     /**
      * Metodo intermédio para explorar álbuns guardados.
      */
-    private void explorarAlbuns() {
+    private void exploreSavedAlbums() {
         List<Album> albunsGuardados = new ArrayList<Album>(this.currentUser.getLibrary().getAlbums().values());
 
         if (albunsGuardados.isEmpty()) {
@@ -546,7 +426,7 @@ public class Controller {
     /**
      * Metodo intermédio para explorar músicas guardadas.
      */
-    private void explorarMusicas() {
+    private void exploreSavedMusics() {
         List<Music> musicasGuardadas = new ArrayList<Music>(this.currentUser.getLibrary().getMusicas().values());
         if (musicasGuardadas.isEmpty()) {
             System.out.println("Sem músicas guardadas!");
@@ -560,7 +440,7 @@ public class Controller {
      * Menu de pesquisa geral por categoria.
      * @param categoria
      */
-    public void menuPesquisarCategoria (String categoria) {
+    public void categorySearchMenu(String categoria) {
         System.out.print("Termo de pesquisa: ");
         String query = scanner.nextLine();
         switch (categoria) {
@@ -708,7 +588,7 @@ public class Controller {
         menuMusica.setHandler(6, () -> this.modelo.tornaMultimedia(music));
         menuMusica.setHandler(7, () -> {
             this.modelo.removeMusica(music);
-            menuPesquisar();
+            searchMenu();
         });
 
         menuMusica.run();
@@ -737,7 +617,7 @@ public class Controller {
                 }
                 p.adicionarMusica(music);
                 System.out.println("Música adicionada com sucesso!");
-                explorarBiblioteca();
+                exploreLibrary();
             });
         }
 
@@ -947,10 +827,99 @@ public class Controller {
         }
     }
 
+    private void ouvirPlaylistAleatoria() {
+        System.out.println("== OUVIR PLAYLIST ALEATÓRIA ==");
+        System.out.print("Introduza o nome da playlist: ");
+        String nome = scanner.nextLine();
+        System.out.print("Introduza o número de músicas a adicionar: ");
+        int num = 0;
+        try {
+            num = scanner.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Input inválido!");
+            scanner.nextLine();
+            return;
+        }
+        scanner.nextLine();
+        RandomPlaylist pa = null;
+        try {
+            pa = this.modelo.geraPlaylistAleatoria(nome, num, currentUser);
+        } catch (PoucasMusicasException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
+        System.out.println("Playlist criada com sucesso!");
+
+        int i = 0;
+        boolean aReproduzir = true;
+        Random r = new Random();
+        System.out.println("\nA REPRODUZIR A PLAYLIST ALEATÓRIA");
+        List<Music> music = new ArrayList<Music>(pa.getMusics().values().stream().toList());
+
+        if (music.isEmpty()) {
+            System.out.println("Lista vazia!");
+            return;
+        }
+
+        while (aReproduzir && i < music.size()) {
+            Music atual = music.get(i);
+            if ((atual.isExplicit() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
+                i++;
+                if (i >= music.size()) {
+                    System.out.println("Fim da lista de músicas!");
+                    aReproduzir = false;
+                }
+                continue;
+            }
+            System.out.println("CONTROLOS DA REPRODUÇÃO:");
+            System.out.println("Enter para continuar, r=Música Aleatória, s=Sair");
+
+            System.out.println("\nA REPRODUZIR MÚSICA: " + atual.toString() + "\n");
+
+            boolean saltou = false;
+
+            String letra = atual.getLyrics();
+            for (String linha : letra) {
+                System.out.print(linha + " ");
+                String cmd = scanner.nextLine();
+
+                switch (cmd.toLowerCase()) {
+                    case "r":
+                        int novoI = i;
+                        while (novoI == i) {
+                            novoI = r.nextInt(music.size());
+                        }
+                        i = novoI;
+                        saltou = true;
+                        break;
+                    case "s":
+                        aReproduzir = false;
+                        break;
+                    default:
+                        break;
+                }
+                if (cmd.toLowerCase().equals("r") || cmd.toLowerCase().equals("s")) {
+                    break;
+                }
+            }
+
+            if (!saltou) {
+                i++;
+                atual.registaReproducao();
+                currentUser.registaReproducaoMusica(atual);
+            }
+
+            if (i >= music.size()) {
+                System.out.println("\nFim da lista de músicas!\n");
+                aReproduzir = false;
+            }
+        }
+    }
+
     /**
      * Menu que apresenta várias estatísticas de utilização da SpotifUM
      */
-    public void menuEstatisticas() {
+    public void statsMenu() {
         System.out.println("+.:+ <ESTATÍSTICAS> +.:+");
         System.out.println("Nº. de utilizadores: " + this.modelo.getTotalUtilizadores());
         System.out.println("Nº. de músicas: " + this.modelo.getTotalMusicas());
@@ -969,7 +938,7 @@ public class Controller {
     /**
      * Menu com várias opções de administração, como criar álbuns e músicas.
      */
-    public void menuAdministracao() {
+    public void adminMenu() {
         Menu menuAdministracao = new Menu("administração", new String[]{
             "Criar álbum",
             "Criar playlist",
@@ -1088,42 +1057,5 @@ public class Controller {
             System.out.println(e.getMessage());
         }
         return linhas;
-    }
-
-    /**
-     * Metodo que guarda o estado da aplicação num ficheiro binário.
-     */
-    public void guardaEstado() {
-        System.out.print("Introduza o nome do ficheiro: ");
-        String nomeFicheiro = scanner.nextLine();
-        try {
-            FileOutputStream fos = new FileOutputStream(nomeFicheiro);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(this.modelo);
-            oos.flush();
-            oos.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("Ficheiro não encontrado! "+ e.getMessage());
-        } catch (IOException e) {
-            System.out.println("Erro ao guardar o ficheiro: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Metodo que carrega um estado de um ficheiro binário.
-     */
-    public void carregaEstado() {
-        System.out.println("Introduza o nome do ficheiro:");
-        String nomeFicheiro = scanner.nextLine();
-        try {
-            FileInputStream fis = new FileInputStream(nomeFicheiro);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            SpotifUM modelo = (SpotifUM) ois.readObject();
-            this.modelo = modelo;
-            ois.close();
-            menuPrincipal();
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Erro ao carregar o ficheiro: " + e.getMessage());
-        }
     }
 }

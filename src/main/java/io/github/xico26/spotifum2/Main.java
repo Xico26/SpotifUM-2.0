@@ -28,6 +28,7 @@ public class Main {
         UserService userService = new UserService(userDAO);
 
         Controller controller = new Controller(albumService, artistService, libraryService, listeningRecordService, playlistService, userService);
+
         controller.run();
     }
 }

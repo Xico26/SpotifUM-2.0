@@ -1,10 +1,8 @@
 package io.github.xico26.spotifum2.model.entity;
 
-import io.github.xico26.spotifum2.model.entity.music.Music;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.*;
 
@@ -291,10 +289,10 @@ public class User {
 
     /**
      * Adiciona pontos
-     * @param pontos pontos
+     * @param points pontos
      */
-    public void adicionarPontos(int pontos) {
-        this.points += pontos;
+    public void addPoints(int points) {
+        this.points += points;
     }
 
     public List<ListeningRecord> getListeningHistory() {

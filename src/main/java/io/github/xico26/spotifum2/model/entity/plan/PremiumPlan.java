@@ -19,7 +19,7 @@ public class PremiumPlan implements ISubscriptionPlan, Serializable {
         return true;
     }
 
-    public boolean podeGerarListaFavoritos() {
+    public boolean canGenerateFavouritesList() {
         return true;
     }
 
@@ -47,7 +47,7 @@ public class PremiumPlan implements ISubscriptionPlan, Serializable {
         if (!user.ouviuMusica(music)) {
             int pontos = user.getPoints();
             int bonus = (int)(pontos * bonusPercentual);
-            user.adicionarPontos(bonus);
+            user.addPoints(bonus);
         }
     }
 

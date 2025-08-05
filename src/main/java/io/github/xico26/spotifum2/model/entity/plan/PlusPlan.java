@@ -28,7 +28,7 @@ public class PlusPlan implements ISubscriptionPlan, Serializable {
         return true;
     }
 
-    public boolean podeGerarListaFavoritos() {
+    public boolean canGenerateFavouritesList() {
         return false;
     }
 
@@ -41,7 +41,7 @@ public class PlusPlan implements ISubscriptionPlan, Serializable {
     }
 
     public void addPoints(Music music, User user) {
-        user.adicionarPontos(pontosPorMusica);
+        user.addPoints(pontosPorMusica);
     }
 
     public boolean podeOuvirPlaylistConstruida() {

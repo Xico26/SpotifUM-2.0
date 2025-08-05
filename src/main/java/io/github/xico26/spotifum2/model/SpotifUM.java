@@ -22,142 +22,6 @@ public class SpotifUM implements Serializable {
     private static final Random random = new Random();
 
     /**
-     * Construtor por omissão.
-     */
-    public SpotifUM() {
-        this.utilizadores = new HashMap<String, User>();
-        this.albuns = new HashMap<String, Album>();
-    }
-
-    /**
-     * Construtor parametrizado. Aceita:
-     *
-     * @param utilizadores mapa de utilizadores
-     * @param albuns       mapa de álbuns
-     */
-    public SpotifUM(Map<String, User> utilizadores, Map<String, Album> albuns) {
-        setUtilizadores(utilizadores);
-        setAlbuns(albuns);
-    }
-
-    /**
-     * Construtor de cópia. Aceita:
-     *
-     * @param novoModelo novo modelo
-     */
-    public SpotifUM(SpotifUM novoModelo) {
-        setUtilizadores(novoModelo.getUtilizadores());
-        setAlbuns(novoModelo.getAlbuns());
-    }
-
-    /**
-     * Devolve os álbuns no sistema.
-     *
-     * @return mapa de álbuns
-     */
-    public Map<String, Album> getAlbuns() {
-        Map<String, Album> albunsClone = new HashMap<String, Album>();
-        for (Map.Entry<String, Album> a : this.albuns.entrySet()) {
-            albunsClone.put(a.getKey(), a.getValue().clone());
-        }
-        return albunsClone;
-    }
-
-    /**
-     * Atualiza os álbuns no sistema.
-     *
-     * @param albuns novos álbuns
-     */
-    public void setAlbuns(Map<String, Album> albuns) {
-        this.albuns = new HashMap<String, Album>();
-        for (Map.Entry<String, Album> a : albuns.entrySet()) {
-            this.albuns.put(a.getKey(), a.getValue().clone());
-        }
-    }
-
-    /**
-     * Devolve os utilizadores no sistema.
-     *
-     * @return mapa de utilizadores
-     */
-    public Map<String, User> getUtilizadores() {
-        Map<String, User> utilizadoresClone = new HashMap<String, User>();
-        for (Map.Entry<String, User> u : this.utilizadores.entrySet()) {
-            utilizadoresClone.put(u.getKey(), u.getValue().clone());
-        }
-        return utilizadoresClone;
-    }
-
-    /**
-     * Atualiza os utilizadores no sistema.
-     *
-     * @param utilizadores novos utilizadores
-     */
-    public void setUtilizadores(Map<String, User> utilizadores) {
-        this.utilizadores = new HashMap<String, User>();
-        for (Map.Entry<String, User> u : utilizadores.entrySet()) {
-            this.utilizadores.put(u.getKey(), u.getValue().clone());
-        }
-    }
-
-    /**
-     * Adiciona um utilizador ao sistema.
-     *
-     * @param nome           nome
-     * @param username       username
-     * @param email          email
-     * @param morada         morada
-     * @param dataNascimento data de nascimento
-     * @param password       password
-     * @throws UsernameJaUsadoException caso username já esteja a ser usado
-     * @throws EmailJaUsadoException    caso email já esteja a ser usado
-     */
-    public void criaUtilizador(String nome, String username, String email, String morada, LocalDate dataNascimento, String password) throws UsernameJaUsadoException, EmailJaUsadoException {
-        if (this.utilizadores.containsKey(username)) {
-            throw new UsernameJaUsadoException("O username " + username + " já está a ser usado!");
-        }
-        for (User u : this.utilizadores.values()) {
-            if (u.getEmail().equals(email)) {
-                throw new EmailJaUsadoException("O email " + email + " já está a ser usado!");
-            }
-        }
-        User novoUser = new User(username, password, nome, morada, email, dataNascimento);
-        this.utilizadores.put(username, novoUser);
-    }
-
-    /**
-     * Lógica para login
-     *
-     * @param username username
-     * @param password password
-     * @return utilizador que iniciou sessão
-     * @throws LoginInvalidoException caso username ou password não coincidam / não existam
-     */
-    public User login(String username, String password) throws LoginInvalidoException {
-        User user = this.utilizadores.get(username);
-        if (user == null || !user.getPassword().equals(password)) {
-            throw new LoginInvalidoException("Username ou palavra passe incorreta!");
-        }
-        return user;
-    }
-
-    /**
-     * Remove uma música do sistema
-     *
-     * @param music música a remover
-     */
-    public void removeMusica(Music music) {
-        for (Album album : this.albuns.values()) {
-            if (album.temMusica(music.getTitle())) {
-                album.removeMusica(music.getTitle());
-                removeMusicaUsers(music);
-                return;
-            }
-        }
-        throw new MusicaNaoExisteException(music.getTitle());
-    }
-
-    /**
      * Adiciona uma música aos favoritos de um utilizador.
      *
      * @param user   utilizador
@@ -170,71 +34,6 @@ public class SpotifUM implements Serializable {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
         user.getLibrary().adicionarMusica(music);
-    }
-
-    /**
-     * Devolve o número total de utilizadores.
-     *
-     * @return nº de utilizadores
-     */
-    public int getTotalUtilizadores() {
-        return this.utilizadores.size();
-    }
-
-    /**
-     * Devolve o número total de álbuns.
-     *
-     * @return nº de álbuns
-     */
-    public int getTotalAlbuns() {
-        return this.albuns.size();
-    }
-
-    /**
-     * Devolve o número total de músicas.
-     *
-     * @return nº de músicas
-     */
-    public int getTotalMusicas() {
-        int numMusicas = 0;
-        for (Album album : this.albuns.values()) {
-            numMusicas += album.getMusicas().size();
-        }
-        return numMusicas;
-    }
-
-    /**
-     * Devolve o número total de playlists.
-     *
-     * @return nº de playlists
-     */
-    public int getTotalPlaylists() {
-        List<String> playlists = new ArrayList<String>();
-        for (User user : this.utilizadores.values()) {
-            for (Playlist p : user.getLibrary().getPlaylists().values()) {
-                if (!playlists.contains(p.getName())) {
-                    playlists.add(p.getName());
-                }
-            }
-        }
-        return playlists.size();
-    }
-
-    /**
-     * Devolve o número total de intérpretes.
-     *
-     * @return nº de intérpretes
-     */
-    public int getTotalInterpretes() {
-        List<String> interpretes = new ArrayList<String>();
-        for (Album album : this.albuns.values()) {
-            for (Music music : album.getMusicas().values()) {
-                if (!interpretes.contains(album.getInterprete())) {
-                    interpretes.add(album.getInterprete());
-                }
-            }
-        }
-        return interpretes.size();
     }
 
     /**
@@ -705,40 +504,6 @@ public class SpotifUM implements Serializable {
     }
 
     /**
-     * Apaga o histórico de músicas ouvidas de um utilizador
-     *
-     * @param user utilizador
-     */
-    public void apagaHistorico(User user) {
-        user.apagaHistorico();
-    }
-
-    /**
-     * Atualiza o plano de um utilizador, adicionando 100 pontos caso o novo plano seja Premium Top.
-     *
-     * @param user  utilizador
-     * @param plano novo plano
-     */
-    public void atualizaPlano(User user, ISubscriptionPlan plano) {
-        user.setPlano(plano);
-        if (plano instanceof PremiumPlan) {
-            user.adicionarPontos(100);
-        }
-    }
-
-    /**
-     * Apaga um utilizador do sistema
-     *
-     * @param user utilizador
-     */
-    public void apagaConta(User user) {
-        if (!this.utilizadores.containsKey(user.getName())) {
-            throw new UserNotFoundException(user.getName());
-        }
-        this.utilizadores.remove(user.getName());
-    }
-
-    /**
      * Torna uma música explícita
      *
      * @param music música
@@ -748,15 +513,6 @@ public class SpotifUM implements Serializable {
         substituiMusica(music, me);
     }
 
-    /**
-     * Torna uma música multimédia
-     *
-     * @param music música
-     */
-    public void tornaMultimedia(Music music) {
-        MusicaMultimedia mm = new MusicaMultimedia(music);
-        substituiMusica(music, mm);
-    }
 
     /**
      * Substitui uma música nos álbuns após ser transformada em explícita / multimédia
