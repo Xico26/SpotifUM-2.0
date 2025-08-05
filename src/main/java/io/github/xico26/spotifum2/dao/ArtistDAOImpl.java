@@ -10,8 +10,8 @@ import java.util.List;
 public class ArtistDAOImpl implements ArtistDAO {
     private final EntityManagerFactory emf;
 
-    public ArtistDAOImpl() {
-        this.emf = Persistence.createEntityManagerFactory("spotifum2");
+    public ArtistDAOImpl(EntityManagerFactory emf) {
+        this.emf = emf;
     }
 
     @Override

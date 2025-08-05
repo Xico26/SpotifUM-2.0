@@ -8,8 +8,8 @@ import java.util.List;
 public class UserDAOImpl implements UserDAO {
     private EntityManagerFactory emf;
 
-    public UserDAOImpl() {
-        this.emf = Persistence.createEntityManagerFactory("spotifumPU");
+    public UserDAOImpl(EntityManagerFactory emf) {
+        this.emf = emf;
     }
 
     @Override

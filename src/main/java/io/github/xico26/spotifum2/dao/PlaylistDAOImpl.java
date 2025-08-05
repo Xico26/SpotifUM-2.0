@@ -13,8 +13,8 @@ import java.util.List;
 public class PlaylistDAOImpl implements PlaylistDAO {
     private final EntityManagerFactory emf;
 
-    public PlaylistDAOImpl() {
-        this.emf = Persistence.createEntityManagerFactory("spotifumPU");
+    public PlaylistDAOImpl(EntityManagerFactory emf) {
+        this.emf = emf;
     }
 
     @Override

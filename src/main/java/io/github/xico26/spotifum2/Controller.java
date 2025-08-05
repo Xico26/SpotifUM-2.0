@@ -12,6 +12,7 @@ import io.github.xico26.spotifum2.model.entity.plan.PremiumPlan;
 import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
 import io.github.xico26.spotifum2.model.entity.playlist.RandomPlaylist;
 import io.github.xico26.spotifum2.model.entity.playlist.CustomPlaylist;
+import io.github.xico26.spotifum2.service.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -25,20 +26,25 @@ import java.util.*;
  */
 public class Controller {
     private static final Scanner scanner = new Scanner(System.in);
-    private SpotifUM modelo;
     private boolean loggedIn = false;
     private User currentUser;
     private boolean isAdmin = false;
 
-    // DAOs
-    private static final AlbumDAO albumDAO = new AlbumDAOImpl();
+    // Services
+    private final AlbumService albumService;
+    private final ArtistService artistService;
+    private final LibraryService libraryService;
+    private final ListeningRecordService listeningRecordService;
+    private final PlaylistService playlistService;
+    private final UserService userService;
 
-    /**
-     * Construtor parametrizado de modelo. Aceita o modelo
-     * @param modelo modelo
-     */
-    public Controller(SpotifUM modelo) {
-        this.modelo = modelo;
+    public Controller(AlbumService albumService, ArtistService artistService, LibraryService libraryService, ListeningRecordService listeningRecordService, PlaylistService playlistService, UserService userService) {
+        this.albumService = albumService;
+        this.artistService = artistService;
+        this.userService = userService;
+        this.playlistService = playlistService;
+        this.listeningRecordService = listeningRecordService;
+        this.libraryService = libraryService;
     }
 
     /**

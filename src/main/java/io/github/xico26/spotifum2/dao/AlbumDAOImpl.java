@@ -11,8 +11,8 @@ import java.util.List;
 public class AlbumDAOImpl implements AlbumDAO {
     private EntityManagerFactory emf;
 
-    public AlbumDAOImpl() {
-        this.emf =  Persistence.createEntityManagerFactory("spotifumPU");
+    public AlbumDAOImpl(EntityManagerFactory emf) {
+        this.emf = emf;
     }
 
     @Override

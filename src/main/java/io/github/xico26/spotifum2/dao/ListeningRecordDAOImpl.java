@@ -9,8 +9,8 @@ import java.util.List;
 public class ListeningRecordDAOImpl implements ListeningRecordDAO {
     private EntityManagerFactory emf;
 
-    public ListeningRecordDAOImpl() {
-        this.emf = Persistence.createEntityManagerFactory("spotifumPU");
+    public ListeningRecordDAOImpl(EntityManagerFactory emf) {
+        this.emf = emf;
     }
 
     @Override

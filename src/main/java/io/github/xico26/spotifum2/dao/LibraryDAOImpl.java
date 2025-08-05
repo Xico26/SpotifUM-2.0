@@ -7,8 +7,8 @@ import jakarta.persistence.*;
 public class LibraryDAOImpl implements LibraryDAO {
     private EntityManagerFactory emf;
 
-    public LibraryDAOImpl() {
-        this.emf = Persistence.createEntityManagerFactory("spotifumPU");
+    public LibraryDAOImpl(EntityManagerFactory emf) {
+        this.emf = emf;
     }
 
     @Override
