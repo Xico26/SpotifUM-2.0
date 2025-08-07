@@ -11,7 +11,7 @@ import java.util.*;
  */
 
 @Entity
-@Table(name="user")
+@Table(name= "users")
 public class User {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
@@ -53,6 +53,7 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Library library;
 
+    @Transient
     private int age;
 
 

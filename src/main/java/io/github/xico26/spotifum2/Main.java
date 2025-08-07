@@ -1,7 +1,6 @@
 package io.github.xico26.spotifum2;
 
 import io.github.xico26.spotifum2.dao.*;
-import io.github.xico26.spotifum2.model.SpotifUM;
 import io.github.xico26.spotifum2.service.*;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;

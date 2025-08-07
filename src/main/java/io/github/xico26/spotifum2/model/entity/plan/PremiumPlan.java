@@ -44,11 +44,11 @@ public class PremiumPlan implements ISubscriptionPlan, Serializable {
     }
 
     public void addPoints(Music music, User user) {
-        if (!user.ouviuMusica(music)) {
+        // if (!user.ouviuMusica(music)) {
             int pontos = user.getPoints();
             int bonus = (int)(pontos * bonusPercentual);
             user.addPoints(bonus);
-        }
+        // }
     }
 
     public static double getBonusPercentual() {
