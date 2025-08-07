@@ -67,6 +67,8 @@ public class LibraryDAOImpl implements LibraryDAO {
                     "SELECT l FROM Library l JOIN l.savedMusics m WHERE m = :music", Library.class);
             query.setParameter("music", music);
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -80,6 +82,8 @@ public class LibraryDAOImpl implements LibraryDAO {
                     "SELECT l FROM Library l JOIN l.savedPlaylists p WHERE p = :playlist", Library.class);
             query.setParameter("playlist", playlist);
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }

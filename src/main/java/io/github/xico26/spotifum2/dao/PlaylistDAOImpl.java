@@ -6,6 +6,7 @@ import io.github.xico26.spotifum2.model.entity.music.Music;
 import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 
 import java.util.List;
@@ -22,6 +23,8 @@ public class PlaylistDAOImpl implements PlaylistDAO {
         EntityManager em = emf.createEntityManager();
         try {
             return em.find(Playlist.class, id);
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -34,6 +37,8 @@ public class PlaylistDAOImpl implements PlaylistDAO {
             TypedQuery<Playlist> query = em.createQuery("SELECT p FROM Playlist p WHERE p.creator = :user", Playlist.class);
             query.setParameter("user", user);
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -45,6 +50,8 @@ public class PlaylistDAOImpl implements PlaylistDAO {
         try {
             TypedQuery<Playlist> query = em.createQuery("SELECT p FROM Playlist p WHERE p.isPublic = true", Playlist.class);
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -57,6 +64,8 @@ public class PlaylistDAOImpl implements PlaylistDAO {
             TypedQuery<Playlist> query = em.createQuery("SELECT p FROM Playlist p WHERE LOWER(p.name) LIKE :title", Playlist.class);
             query.setParameter("title", "%" + title.toLowerCase() + "%");
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -120,6 +129,8 @@ public class PlaylistDAOImpl implements PlaylistDAO {
                     "SELECT p FROM Playlist p JOIN p.musics m WHERE m = :music", Playlist.class);
             query.setParameter("music", music);
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }

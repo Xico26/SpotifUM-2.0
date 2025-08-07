@@ -23,6 +23,8 @@ public class ListeningRecordDAOImpl implements ListeningRecordDAO {
             TypedQuery<ListeningRecord> query = em.createQuery("SELECT l FROM ListeningRecord l WHERE l.user == :user", ListeningRecord.class);
             query.setParameter("user", u);
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -65,6 +67,8 @@ public class ListeningRecordDAOImpl implements ListeningRecordDAO {
 
             Long count = query.getSingleResult();
             return count > 0;
+        } catch (NoResultException e) {
+            return false;
         } finally {
             em.close();
         }
@@ -78,6 +82,8 @@ public class ListeningRecordDAOImpl implements ListeningRecordDAO {
             query.setParameter("user", u);
 
             return query.getSingleResult().intValue();
+        } catch (NoResultException e) {
+            return 0;
         } finally {
             em.close();
         }
@@ -98,6 +104,8 @@ public class ListeningRecordDAOImpl implements ListeningRecordDAO {
             }
 
             return musics.stream().toList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -112,6 +120,8 @@ public class ListeningRecordDAOImpl implements ListeningRecordDAO {
             query.setParameter("music", m);
 
             return query.getSingleResult().intValue();
+        } catch (NoResultException e) {
+            return 0;
         } finally {
             em.close();
         }

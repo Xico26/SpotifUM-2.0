@@ -45,12 +45,6 @@ public class UserService {
     public void createUser(String username, String password, String name, String address, String email, LocalDate birthDate) {
         User newUser = new User(username, password, name, address, email, birthDate, "FREE");
 
-        try {
-            findByUsername(username);
-        } catch (NoResultException e) {
-
-        }
-
         if (findByUsername(username) != null) {
             throw new InvalidParamsException("Username already used!");
         }

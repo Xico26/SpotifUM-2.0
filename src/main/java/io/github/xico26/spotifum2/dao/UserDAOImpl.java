@@ -35,6 +35,8 @@ public class UserDAOImpl implements UserDAO {
             TypedQuery<User> query = em.createQuery("SELECT u FROM User u WHERE u.username=:username", User.class);
             query.setParameter("username", username);
             return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -47,6 +49,8 @@ public class UserDAOImpl implements UserDAO {
             TypedQuery<User> query = em.createQuery("SELECT u FROM User u WHERE u.email=:email", User.class);
             query.setParameter("email", email);
             return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }

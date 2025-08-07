@@ -1,10 +1,7 @@
 package io.github.xico26.spotifum2.dao;
 
 import io.github.xico26.spotifum2.model.entity.music.Music;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.TypedQuery;
+import jakarta.persistence.*;
 
 import java.util.List;
 
@@ -20,6 +17,8 @@ public class MusicDAOImpl implements MusicDAO {
         EntityManager em = emf.createEntityManager();
         try {
             return em.find(Music.class, id);
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -31,6 +30,8 @@ public class MusicDAOImpl implements MusicDAO {
         try {
             TypedQuery<Music> query = em.createQuery("SELECT m FROM Music m", Music.class);
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -81,6 +82,8 @@ public class MusicDAOImpl implements MusicDAO {
         try {
             TypedQuery<Long> query = em.createQuery("SELECT COUNT(m) FROM Music m", Long.class);
             return query.getSingleResult().intValue();
+        } catch (NoResultException e) {
+            return 0;
         } finally {
             em.close();
         }
@@ -93,6 +96,8 @@ public class MusicDAOImpl implements MusicDAO {
             TypedQuery<Music> query = em.createQuery("SELECT m FROM Music m WHERE LOWER(m.title) LIKE :title", Music.class);
             query.setParameter("title", "%" + title.toLowerCase() + "%");
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
@@ -105,6 +110,8 @@ public class MusicDAOImpl implements MusicDAO {
             TypedQuery<Music> query = em.createQuery("SELECT m FROM Music m WHERE m.genre == :genre", Music.class);
             query.setParameter("genre", genre);
             return query.getResultList();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             em.close();
         }
