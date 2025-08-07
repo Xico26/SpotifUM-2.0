@@ -23,6 +23,22 @@ public class AlbumService {
         return albumDAO.findAll();
     }
 
+    public List<Album> searchByTitle(String title) {
+        return albumDAO.findByTitle(title);
+    }
+
+    public List<Album> searchByArtist(String artist) {
+        return albumDAO.findByArtist(artist);
+    }
+
+    public void save (Album album) {
+        albumDAO.save(album);
+    }
+
+    public void delete (Album album) {
+        albumDAO.delete(album);
+    }
+
     public boolean hasMusic(int albumId, int musicId) throws AlbumNotFoundException {
         Album album = albumDAO.findById(albumId);
         if (album == null) {

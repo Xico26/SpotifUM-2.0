@@ -10,6 +10,8 @@ import io.github.xico26.spotifum2.model.entity.User;
 import io.github.xico26.spotifum2.model.entity.music.Music;
 import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
 
+import java.util.List;
+
 public class LibraryService {
     private final LibraryDAO libraryDAO;
 
@@ -101,5 +103,13 @@ public class LibraryService {
             library.removePlaylist(library.getPlaylists().stream().filter(p -> p.getName().equals(name)).findFirst().get());
             libraryDAO.update(library);
         }
+    }
+
+    public List<Library> findAllWithMusic (Music music) {
+        return libraryDAO.findAllWithMusic(music);
+    }
+
+    public void save (Library library) {
+        libraryDAO.save(library);
     }
 }

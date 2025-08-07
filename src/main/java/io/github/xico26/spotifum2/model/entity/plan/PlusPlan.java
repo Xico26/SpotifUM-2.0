@@ -32,11 +32,11 @@ public class PlusPlan implements ISubscriptionPlan, Serializable {
         return false;
     }
 
-    public boolean podeCriarListaGenero() {
+    public boolean canCreateGenreList() {
         return false;
     }
 
-    public boolean podeOuvirMusicaIndividual() {
+    public boolean canListenSingleMusic() {
         return true;
     }
 

@@ -1,10 +1,11 @@
 package io.github.xico26.spotifum2.dao;
 
 import io.github.xico26.spotifum2.model.entity.Album;
+import io.github.xico26.spotifum2.model.entity.music.Music;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.EntityTransaction;
-import jakarta.persistence.Persistence;
+import jakarta.persistence.TypedQuery;
 
 import java.util.List;
 
@@ -59,5 +60,29 @@ public class AlbumDAOImpl implements AlbumDAO {
         em.merge(a);
         tx.commit();
         em.close();
+    }
+
+    @Override
+    public List<Album> findByTitle(String title) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<Album> query = em.createQuery("SELECT a FROM Album a WHERE LOWER(a.name) LIKE :title", Album.class);
+            query.setParameter("title", "%" + title.toLowerCase() + "%");
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public List<Album> findByArtist(String artist) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<Album> query = em.createQuery("SELECT a FROM Album a WHERE LOWER(a.artist.name) LIKE :artist", Album.class);
+            query.setParameter("artist", "%" + artist.toLowerCase() + "%");
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
     }
 }

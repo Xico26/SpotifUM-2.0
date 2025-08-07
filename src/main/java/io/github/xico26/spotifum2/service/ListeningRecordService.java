@@ -48,7 +48,21 @@ public class ListeningRecordService {
     }
 
     public int getNumListensToMusic (User u, Music m) {
-        return lrDAO.getNumListenedToMusic(u, m);
+        return lrDAO.getNumListensToMusic(u, m);
+    }
+
+    public String playMusic (User u, Music m) {
+        // create record
+        ListeningRecord lr = new ListeningRecord(u, m, LocalDateTime.now());
+        lrDAO.save(lr);
+
+        // add points
+        userService.getSubscriptionPlan(u).addPoints(m, u);
+
+        // save user
+        userService.save(u);
+
+        return m.toString() + "\n\n" + m.getLyrics();
     }
 
 }

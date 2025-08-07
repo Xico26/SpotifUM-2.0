@@ -31,7 +31,7 @@ public class PremiumPlan implements ISubscriptionPlan, Serializable {
         return true;
     }
 
-    public boolean podeCriarListaGenero() {
+    public boolean canCreateGenreList() {
         return true;
     }
 
@@ -39,7 +39,7 @@ public class PremiumPlan implements ISubscriptionPlan, Serializable {
         return true;
     }
 
-    public boolean podeOuvirMusicaIndividual() {
+    public boolean canListenSingleMusic() {
         return true;
     }
 

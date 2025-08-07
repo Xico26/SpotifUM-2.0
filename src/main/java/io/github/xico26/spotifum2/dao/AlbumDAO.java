@@ -1,6 +1,7 @@
 package io.github.xico26.spotifum2.dao;
 
 import io.github.xico26.spotifum2.model.entity.Album;
+import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
 
 import java.util.List;
 
@@ -14,4 +15,8 @@ public interface AlbumDAO {
     void delete(Album a);
 
     void update(Album a);
+
+    List<Album> findByTitle(String title);
+
+    List<Album> findByArtist(String artist);
 }

@@ -25,11 +25,11 @@ public class SpotifUM implements Serializable {
      * @param user   utilizador
      * @param music música
      * @throws MusicAlreadySavedException caso a música já esteja guardada
-     * @throws SemPermissoesException    caso o utilizador não tenha permissões para o fazer
+     * @throws NoPermissionsException    caso o utilizador não tenha permissões para o fazer
      */
-    public void adicionaMusicaFavorita(User user, Music music) throws MusicAlreadySavedException, SemPermissoesException {
+    public void adicionaMusicaFavorita(User user, Music music) throws MusicAlreadySavedException, NoPermissionsException {
         if (!user.getPlano().canSaveAlbum()) {
-            throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
+            throw new NoPermissionsException("O plano atual não permite efetuar esta ação!");
         }
         user.getLibrary().adicionarMusica(music);
     }
@@ -233,11 +233,11 @@ public class SpotifUM implements Serializable {
      * @param user  utilizador
      * @param album álbum
      * @throws AlbumAlreadySavedException caso o álbum já esteja guardado
-     * @throws SemPermissoesException   caso o utilizador não tenha permissões para o fazer
+     * @throws NoPermissionsException   caso o utilizador não tenha permissões para o fazer
      */
-    public void adicionaAlbumFavorito(User user, Album album) throws AlbumAlreadySavedException, SemPermissoesException {
+    public void adicionaAlbumFavorito(User user, Album album) throws AlbumAlreadySavedException, NoPermissionsException {
         if (!user.getPlano().canSaveAlbum()) {
-            throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
+            throw new NoPermissionsException("O plano atual não permite efetuar esta ação!");
         }
         if (user.getLibrary().getAlbums().containsKey(album.getName())) {
             throw new AlbumAlreadySavedException("O álbum já está guardado!");
@@ -250,15 +250,15 @@ public class SpotifUM implements Serializable {
      *
      * @param music música
      * @return álbum onde está guardada
-     * @throws MusicaNaoExisteException caso não exista
+     * @throws MusicNotFoundException caso não exista
      */
-    public Album existeMusica(Music music) throws MusicaNaoExisteException {
+    public Album existeMusica(Music music) throws MusicNotFoundException {
         for (Album album : this.albuns.values()) {
             if (album.getMusicas().containsKey(music.getTitle())) {
                 return album;
             }
         }
-        throw new MusicaNaoExisteException(music.getTitle());
+        throw new MusicNotFoundException(music.getTitle());
     }
 
     /**
@@ -267,11 +267,11 @@ public class SpotifUM implements Serializable {
      * @param nome nome da playlist
      * @param u    criador
      * @throws NameAlreadyUsedException  caso o nome tenha sido usado
-     * @throws SemPermissoesException caso o utilizador não tenha permissões
+     * @throws NoPermissionsException caso o utilizador não tenha permissões
      */
-    public void criaPlaylist(String nome, User u) throws NameAlreadyUsedException, SemPermissoesException {
+    public void criaPlaylist(String nome, User u) throws NameAlreadyUsedException, NoPermissionsException {
         if (!u.getPlano().canCreatePlaylist()) {
-            throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
+            throw new NoPermissionsException("O plano atual não permite efetuar esta ação!");
         }
         if (u.getLibrary().getPlaylists().containsKey(nome)) {
             throw new NameAlreadyUsedException("Já existe uma playlist com o nome " + nome);
@@ -408,11 +408,11 @@ public class SpotifUM implements Serializable {
      * @param user     utilizador
      * @param playlist playlist
      * @throws PlaylistAlreadySavedException caso a playlist já esteja guardada
-     * @throws SemPermissoesException      caso o utilizador não tenha permissões
+     * @throws NoPermissionsException      caso o utilizador não tenha permissões
      */
-    public void adicionaPlaylistBiblioteca(User user, Playlist playlist) throws PlaylistAlreadySavedException, SemPermissoesException {
+    public void adicionaPlaylistBiblioteca(User user, Playlist playlist) throws PlaylistAlreadySavedException, NoPermissionsException {
         if (!user.getPlano().canSavePlaylist()) {
-            throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
+            throw new NoPermissionsException("O plano atual não permite efetuar esta ação!");
         }
         if (user.getLibrary().getPlaylists().containsKey(playlist.getName())) {
             throw new PlaylistAlreadySavedException("Uma playlist com o mesmo nome já está guardada!");
@@ -452,15 +452,7 @@ public class SpotifUM implements Serializable {
         substituiMusica(music, me);
     }
 
-
-    /**
-     * Substitui uma música nos álbuns após ser transformada em explícita / multimédia
-     *
-     * @param original música original
-     * @param nova     música nova
-     * @throws MusicaNaoExisteException caso a música original não exista
-     */
-    public void substituiMusica(Music original, Music nova) throws MusicaNaoExisteException {
+    public void substituiMusica(Music original, Music nova) throws MusicNotFoundException {
         Album album = existeMusica(original);
         album.getMusicas().remove(original.getTitle());
         album.getMusicas().put(nova.getTitle(), nova.clone());

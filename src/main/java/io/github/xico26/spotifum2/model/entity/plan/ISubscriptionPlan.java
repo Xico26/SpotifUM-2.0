@@ -18,11 +18,11 @@ public interface ISubscriptionPlan {
 
     boolean podeAvancarRetroceder();
 
-    boolean podeCriarListaGenero();
+    boolean canCreateGenreList();
 
     boolean podeOuvirPlaylistConstruida();
 
-    boolean podeOuvirMusicaIndividual();
+    boolean canListenSingleMusic();
 
     void addPoints(Music music, User user);
 }

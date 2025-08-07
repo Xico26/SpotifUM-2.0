@@ -32,7 +32,7 @@ public class FreePlan implements ISubscriptionPlan, Serializable {
         return false;
     }
 
-    public boolean podeCriarListaGenero() {
+    public boolean canCreateGenreList() {
         return false;
     }
 
@@ -40,7 +40,7 @@ public class FreePlan implements ISubscriptionPlan, Serializable {
         return false;
     }
 
-    public boolean podeOuvirMusicaIndividual() {
+    public boolean canListenSingleMusic() {
         return false;
     }
 

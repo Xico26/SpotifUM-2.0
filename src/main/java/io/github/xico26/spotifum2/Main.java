@@ -23,11 +23,13 @@ public class Main {
 
         AlbumService albumService = new AlbumService(albumDAO);
         ArtistService artistService = new ArtistService(artistDAO);
-        MusicService musicService = new MusicService(musicDAO);
+        MusicService musicService = new MusicService(musicDAO, albumService);
         UserService userService = new UserService(userDAO);
         LibraryService libraryService = new LibraryService(libraryDAO);
         ListeningRecordService listeningRecordService = new ListeningRecordService(lrDAO, userService);
         PlaylistService playlistService = new PlaylistService(playlistDAO, libraryService, listeningRecordService, musicService);
+        musicService.setPlaylistService(playlistService);
+        musicService.setLibraryService(libraryService);
 
 
         Controller controller = new Controller(albumService, artistService, libraryService, listeningRecordService, playlistService, userService, musicService);

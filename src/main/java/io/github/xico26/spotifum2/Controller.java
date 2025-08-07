@@ -2,6 +2,7 @@ package io.github.xico26.spotifum2;
 
 import io.github.xico26.spotifum2.exceptions.*;
 import io.github.xico26.spotifum2.model.entity.*;
+import io.github.xico26.spotifum2.model.entity.music.ExplicitMusic;
 import io.github.xico26.spotifum2.model.entity.music.Music;
 import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
 import io.github.xico26.spotifum2.model.entity.playlist.RandomPlaylist;
@@ -322,7 +323,7 @@ public class Controller {
             "Generate a list of musics of a specific genre",
         });
         exploreLibrary.setPreCondition(4, () -> this.userService.getSubscriptionPlan(currentUser).canGenerateFavouritesList());
-        exploreLibrary.setPreCondition(5, () -> this.userService.getSubscriptionPlan(currentUser).podeCriarListaGenero());
+        exploreLibrary.setPreCondition(5, () -> this.userService.getSubscriptionPlan(currentUser).canCreateGenreList());
 
         exploreLibrary.setHandler(1, () -> exploreSavedMusics());
         exploreLibrary.setHandler(2, () -> exploreSavedAlbums());
@@ -388,273 +389,273 @@ public class Controller {
     }
 
     /**
-     * Metodo intermédio para explorar playlists guardadas.
+     * Intermediate method for exploring saved playlists.
      */
     private void exploreSavedPlaylists() {
-        List<Playlist> playlistsGuardadas = new ArrayList<Playlist>(this.currentUser.getLibrary().getPlaylists().values());
+        List<Playlist> savedPlaylists = this.currentUser.getLibrary().getPlaylists().stream().toList();
 
-        if (playlistsGuardadas.isEmpty()) {
-            System.out.println("Sem playlists guardadas!");
+        if (savedPlaylists.isEmpty()) {
+            System.out.println("No saved playlists found!");
             return;
         }
 
-        imprimeListaPlaylists(playlistsGuardadas);
+        printPlaylistsList(savedPlaylists);
     }
 
     /**
-     * Metodo intermédio para explorar álbuns guardados.
+     * Intermediate method for exploring saved albums.
      */
     private void exploreSavedAlbums() {
-        List<Album> albunsGuardados = new ArrayList<Album>(this.currentUser.getLibrary().getAlbums().values());
+        List<Album> savedAlbums = this.currentUser.getLibrary().getAlbums().stream().toList();
 
-        if (albunsGuardados.isEmpty()) {
-            System.out.println("Sem álbuns guardados!");
+        if (savedAlbums.isEmpty()) {
+            System.out.println("No saved albums found!");
             return;
         }
 
-        imprimeListaAlbuns(albunsGuardados);
+        printAlbumsList(savedAlbums);
     }
 
     /**
-     * Metodo intermédio para explorar músicas guardadas.
+     * Intermediate method for exploring saved musics.
      */
     private void exploreSavedMusics() {
-        List<Music> musicasGuardadas = new ArrayList<Music>(this.currentUser.getLibrary().getMusicas().values());
-        if (musicasGuardadas.isEmpty()) {
-            System.out.println("Sem músicas guardadas!");
+        List<Music> savedMusics = this.currentUser.getLibrary().getMusics().stream().toList();
+
+        if (savedMusics.isEmpty()) {
+            System.out.println("No saved musics found!");
             return;
         }
 
-        imprimeListaMusicas(musicasGuardadas);
+        printMusicsList(savedMusics);
     }
 
     /**
-     * Menu de pesquisa geral por categoria.
-     * @param categoria
+     * Category search menu.
+     * @param category
      */
-    public void categorySearchMenu(String categoria) {
-        System.out.print("Termo de pesquisa: ");
+    public void categorySearchMenu(String category) {
+        System.out.print("Search term: ");
         String query = scanner.nextLine();
-        switch (categoria) {
-            case "musica":
-                imprimeListaMusicas(this.modelo.pesquisaMusicas(query));
+        switch (category) {
+            case "music":
+                printMusicsList(this.musicService.searchByTitle(query));
                 break;
             case "album":
-                imprimeListaAlbuns(this.modelo.pesquisaAlbuns(query));
+                printAlbumsList(this.albumService.searchByTitle(query));
                 break;
             case "playlist":
-                imprimeListaPlaylists(this.modelo.pesquisaPlaylists(query));
+                printPlaylistsList(this.playlistService.searchByTitle(query));
                 break;
-            case "interprete":
-                menuPesquisarInterprete();
+            case "artist":
+                searchArtistMenu();
                 break;
             default:
-                throw new CategoriaDesconhecidaException(categoria);
+                throw new UnknownCategoryException(category);
         }
     }
 
     /**
-     * Menu de pesquisa por intérprete. Permite pesquisar álbuns e músicas.
+     * Artist search menu. Allows searching for albums and musics.
      */
-    public void menuPesquisarInterprete () {
-        System.out.println("+.:+ <PESQUISA POR INTÉRPRETE> +.:+");
-        System.out.print("Intérprete: ");
-        String interprete = scanner.nextLine();
-        List<Music> music = this.modelo.pesquisaMusicasInterprete(interprete);
-        List<Album> albuns = this.modelo.pesquisaAlbunsInterprete(interprete);
+    public void searchArtistMenu() {
+        System.out.println("== SEARCH BY ARTIST ==");
+        System.out.print("Artist: ");
+        String artist = scanner.nextLine();
+        List<Music> musics = this.musicService.searchByArtist(artist);
+        List<Album> albums = this.albumService.searchByArtist(artist);
 
-        Menu menuPesquisaInterprete = new Menu("pesquisar por interprete...", new String[]{
-                "Músicas",
-                "Álbuns"
+        Menu searchArtistMenu = new Menu("search for...", new String[]{
+                "Musics",
+                "Albums"
         });
 
-        menuPesquisaInterprete.setHandler(1, () -> imprimeListaMusicas(music));
-        menuPesquisaInterprete.setHandler(2, () -> imprimeListaAlbuns(albuns));
+        searchArtistMenu.setHandler(1, () -> printMusicsList(musics));
+        searchArtistMenu.setHandler(2, () -> printAlbumsList(albums));
 
-        menuPesquisaInterprete.run();
+        searchArtistMenu.run();
     }
 
     /**
-     * Imprime uma lista de músicas, tendo em atenção as preferências do utilizador sobre o tipo de músicas a esconder.
-     * @param music lista de músicas
+     * Prints a list of music, with regards to user preferences.
+     * @param musics lista de músicas
      */
-    public void imprimeListaMusicas(List<Music> music) {
-        if (music.isEmpty()) {
-            System.out.println("Nenhuma música encontrada!");
+    public void printMusicsList(List<Music> musics) {
+        if (musics.isEmpty()) {
+            System.out.println("No musics found!");
             return;
         }
-        List<Music> musicasFiltradas = music.stream()
+        List<Music> filteredMusics = musics.stream()
                 .filter(m -> !(m.isExplicit() && !currentUser.wantsExplicit()))
-                .filter(m -> !(m.isMultimedia() && !currentUser.querVerMultimedia()))
                 .toList();
-        String[] nomesMusicas = musicasFiltradas.stream().map(Music::getTitle).toArray(String[]::new);
-        Menu menuListaMusicas = new Menu("músicas encontradas",nomesMusicas);
-        for (int i = 0; i < musicasFiltradas.size(); i++) {
+        String[] musicNames = filteredMusics.stream().map(Music::getTitle).toArray(String[]::new);
+        Menu musicListMenu = new Menu("found musics",musicNames);
+        for (int i = 0; i < filteredMusics.size(); i++) {
             int index = i;
-            menuListaMusicas.setHandler(index+1,() -> menuInfoMusica(musicasFiltradas.get(index)));
+            musicListMenu.setHandler(index+1,() -> musicInfoMenu(filteredMusics.get(index)));
         }
 
-        menuListaMusicas.run();
+        musicListMenu.run();
     }
 
     /**
-     * Imprime uma lista de álbuns.
-     * @param albuns lista de álbuns
+     * Prints a list of albums.
+     * @param albums lista de álbuns
      */
-    public void imprimeListaAlbuns(List<Album> albuns) {
-        if (albuns.isEmpty()) {
-            System.out.println("Nenhum álbum encontrado!");
+    public void printAlbumsList(List<Album> albums) {
+        if (albums.isEmpty()) {
+            System.out.println("No albums found!");
             return;
         }
-        String[] nomesAlbuns = albuns.stream().map(Album::toString).toArray(String[]::new);
-        Menu menuListaAlbuns = new Menu("álbuns encontrados", nomesAlbuns);
-        for (int i = 0; i < albuns.size(); i++) {
+        String[] albumNames = albums.stream().map(Album::toString).toArray(String[]::new);
+        Menu albumListMenu = new Menu("found albums", albumNames);
+        for (int i = 0; i < albums.size(); i++) {
             int index = i;
-            menuListaAlbuns.setHandler(index+1,() -> menuInfoAlbum(albuns.get(index)));
+            albumListMenu.setHandler(index+1,() -> albumInfoMenu(albums.get(index)));
         }
 
-        menuListaAlbuns.run();
+        albumListMenu.run();
     }
 
     /**
-     * Imprime uma lista de playlists.
+     * Prints a list of playlists.
      * @param playlists lista de playlists
      */
-    public void imprimeListaPlaylists(List<Playlist> playlists) {
+    public void printPlaylistsList(List<Playlist> playlists) {
         if (playlists.isEmpty()) {
-            System.out.println("Nenhuma playlist encontrada!");
+            System.out.println("No playlists found!");
             return;
         }
-        String[] nomesPlaylists = playlists.stream().map(Playlist::getName).toArray(String[]::new);
-        Menu menuListaPlaylists = new Menu("playlists encontradas", nomesPlaylists);
+        String[] playlistsNames = playlists.stream().map(Playlist::getName).toArray(String[]::new);
+        Menu playlistListMenu = new Menu("found playlists", playlistsNames);
         for (int i = 0; i < playlists.size(); i++) {
             int index = i;
-            menuListaPlaylists.setHandler(index+1,() -> menuInfoPlaylist(playlists.get(index)));
+            playlistListMenu.setHandler(index+1,() -> playlistInfoMenu(playlists.get(index)));
         }
 
-        menuListaPlaylists.run();
+        playlistListMenu.run();
     }
 
     /**
-     * Menu com informações de uma música. Permite ouvi-la, ver a letra e adicionar à biblioteca
+     * Menu with information and options related to a music
      * @param music música
      */
-    public void menuInfoMusica(Music music) {
+    public void musicInfoMenu(Music music) {
         System.out.println(music.toString());
-        Menu menuMusica = new Menu("opções", new String[]{
-                "Ouvir música",
-                "Ver letra",
-                "Adicionar aos favoritos",
-                "Adicionar à playlist...",
-                "Tornar explicita",
-                "Tornar multimédia",
-                "Remover"
+        Menu musicMenu = new Menu("options", new String[]{
+                "Listen",
+                "Lyrics",
+                "Add to favourites",
+                "Add to playlist...",
+                "Toggle explicit. Currently: " + music.isExplicit(),
+                "Remove"
         });
-        menuMusica.setPreCondition(1, () -> loggedIn);
-        menuMusica.setPreCondition(3, () -> loggedIn);
-        menuMusica.setPreCondition(4, () -> loggedIn && currentUser.getPlano().canCreatePlaylist());
-        menuMusica.setPreCondition(5, () -> isAdmin && !music.isExplicit());
-        menuMusica.setPreCondition(6, () -> isAdmin && !music.isMultimedia());
-        menuMusica.setPreCondition(7, () -> isAdmin);
+        musicMenu.setPreCondition(1, () -> loggedIn);
+        musicMenu.setPreCondition(3, () -> loggedIn);
+        musicMenu.setPreCondition(4, () -> loggedIn && this.userService.getSubscriptionPlan(currentUser).canCreatePlaylist());
+        musicMenu.setPreCondition(5, () -> isAdmin);
+        musicMenu.setPreCondition(6, () -> isAdmin);
 
-        menuMusica.setHandler(1, () -> {
-            if (!currentUser.getPlano().podeOuvirMusicaIndividual()) {
-                System.out.println("O plano atual não permite ouvir músicas de forma individual!");
-                System.out.println("Para ouvir músicas, crie uma playlist aleatória!");
+        musicMenu.setHandler(1, () -> {
+            if (!this.userService.getSubscriptionPlan(currentUser).canListenSingleMusic()) {
+                System.out.println("The current plan does not allow listening to single musics!");
+                System.out.println("To listen to musics, please create a random playlist!");
                 return;
             }
-            System.out.println(music.reproduzMusica(currentUser));
+            System.out.println(listeningRecordService.playMusic(currentUser, music));
         });
-        menuMusica.setHandler(2, () -> System.out.println(music.imprimeLetra()));
-        menuMusica.setHandler(3, () -> {
+        musicMenu.setHandler(2, () -> System.out.println(music.getLyrics()));
+        musicMenu.setHandler(3, () -> {
             try {
-                this.modelo.adicionaMusicaFavorita(currentUser, music);
-            } catch (MusicAlreadySavedException | SemPermissoesException e) {
+                this.libraryService.addMusic(currentUser, music);
+            } catch (MusicAlreadySavedException e) {
                 System.out.println(e.getMessage());
                 return;
             }
-            System.out.println("Música guardada com sucesso!");
+            System.out.println("Music added successfully!");
         });
-        menuMusica.setHandler(4, () -> adicionaMusicaPlaylist(music));
-        menuMusica.setHandler(5, () -> this.modelo.tornaExplicita(music));
-        menuMusica.setHandler(6, () -> this.modelo.tornaMultimedia(music));
-        menuMusica.setHandler(7, () -> {
-            this.modelo.removeMusica(music);
+        musicMenu.setHandler(4, () -> addMusicToPlaylist(music));
+        musicMenu.setHandler(5, () -> {
+            if (music.isExplicit()) {
+                musicService.makeNormal((ExplicitMusic) music);
+            } else {
+                musicService.makeExplicit(music);
+            }
+        });
+        musicMenu.setHandler(6, () -> {
+            this.musicService.delete(music);
             searchMenu();
         });
 
-        menuMusica.run();
+        musicMenu.run();
     }
 
-    private void adicionaMusicaPlaylist(Music music) {
-        System.out.println("+.:+ <ADICIONAR MÚSICA A PLAYLIST> +.:+");
+    private void addMusicToPlaylist(Music music) {
+        System.out.println("== ADD MUSIC TO PLAYLIST ==");
 
-        List<Playlist> playlists = currentUser.getLibrary().getPlaylists().values().stream().filter(p -> p.getCriador().equals(currentUser)).toList();
+        List<Playlist> playlists = playlistService.findByUser(currentUser);
         if (playlists.isEmpty()) {
-            System.out.println("Nenhuma playlist encontrada!");
+            System.out.println("No playlists found!");
             return;
         }
-        String[] nomesPlaylists = playlists.stream().map(Playlist::getName).toArray(String[]::new);
-        Menu menuListaPlaylists = new Menu("escolha a playlist", nomesPlaylists);
+        String[] playlistNames = playlists.stream().map(Playlist::getName).toArray(String[]::new);
+        Menu playlistListMenu = new Menu("choose playlist", playlistNames);
         for (int i = 0; i < playlists.size(); i++) {
             int index = i;
-            menuListaPlaylists.setHandler(index+1,() -> {
+            playlistListMenu.setHandler(index+1,() -> {
                 Playlist playlist = playlists.get(index);
-                if (!currentUser.getLibrary().getPlaylists().containsKey(playlist.getName())) {
-                    System.out.println("A playlist não existe!");
+                if (playlistService.hasMusic(playlist, music)) {
+                    System.out.println("Music already saved!");
                 }
-                Playlist p = currentUser.getLibrary().getPlaylists().get(playlist.getName());
-                if (p.getMusics().containsKey(music.getTitle())) {
-                    System.out.println("Música já guardada!");
-                }
-                p.addMusic(music);
-                System.out.println("Música adicionada com sucesso!");
+                playlist.addMusic(music);
+                playlistService.save(playlist);
+                System.out.println("Music added successfully!");
                 exploreLibrary();
             });
         }
 
-        menuListaPlaylists.run();
+        playlistListMenu.run();
     }
 
     /**
-     * Menu com informações de um álbum. Permite ouvi-lo, ver as músicas e adicionar à biblioteca
+     * Menu with information and options related to an album
      * @param album álbum
      */
-    public void menuInfoAlbum(Album album) {
+    public void albumInfoMenu(Album album) {
         System.out.println(album.toString());
-        Menu menuAlbum = new Menu("opções", new String[]{
-                "Ouvir álbum",
-                "Ver músicas",
-                "Adicionar aos favoritos",
-                "Adicionar Música",
-                "Remover"
+        Menu albumMenu = new Menu("options", new String[]{
+                "Listen to album",
+                "See musics",
+                "Add to favourites",
+                "Add music",
+                "Remove"
         });
-        menuAlbum.setPreCondition(1, () -> loggedIn);
-        menuAlbum.setPreCondition(3, () -> loggedIn);
-        menuAlbum.setPreCondition(4, () -> isAdmin);
-        menuAlbum.setPreCondition(5, () -> isAdmin);
+        albumMenu.setPreCondition(1, () -> loggedIn);
+        albumMenu.setPreCondition(3, () -> loggedIn);
+        albumMenu.setPreCondition(4, () -> isAdmin);
+        albumMenu.setPreCondition(5, () -> isAdmin);
 
-        menuAlbum.setHandler(1, () -> reproduzAlbum(album));
-        menuAlbum.setHandler(2, () -> imprimeListaMusicas(album.getMusicas().values().stream().toList()));
-        menuAlbum.setHandler(3, () -> {
+        albumMenu.setHandler(1, () -> playAlbum(album));
+        albumMenu.setHandler(2, () -> printMusicsList(album.getMusics()));
+        albumMenu.setHandler(3, () -> {
             try {
-                this.modelo.adicionaAlbumFavorito(currentUser, album);
-            } catch (AlbumAlreadySavedException | SemPermissoesException e) {
+                libraryService.addAlbum(currentUser, album);
+            } catch (AlbumAlreadySavedException | NoPermissionsException e) {
                 System.out.println(e.getMessage());
                 return;
             }
-            System.out.println("Álbum guardado com sucesso!");
+            System.out.println("Album added successfully!");
         });
-        menuAlbum.setHandler(4, () -> menuCriarMusica(album.getName()));
-        menuAlbum.setHandler(5, () -> {
+        albumMenu.setHandler(4, () -> createMusicMenu(album.getName()));
+        albumMenu.setHandler(5, () -> {
             try {
-                this.modelo.removeAlbum(album);
+                albumService.delete(album);
             } catch (AlbumNotFoundException e) {
                 System.out.println(e.getMessage());
             }
         });
 
-        menuAlbum.run();
+        albumMenu.run();
     }
 
     /**
@@ -752,7 +753,7 @@ public class Controller {
      * Metodo intermédio para reprodução de um álbum
      * @param album
      */
-    public void reproduzAlbum(Album album) {
+    public void playAlbum(Album album) {
         List<Music> music = album.getMusicas().values().stream().toList();
         reproduzListaMusicas(album.getName(), music);
     }
@@ -761,7 +762,7 @@ public class Controller {
      * Menu com informações de uma playlist. Permite ouvi-la, ver as músicas e adicionar à biblioteca
      * @param playlist playlist
      */
-    public void menuInfoPlaylist(Playlist playlist) {
+    public void playlistInfoMenu(Playlist playlist) {
         System.out.println(playlist.toString());
         Menu menuPlaylist = new Menu("opções", new String[]{
                 "Ouvir playlist",
@@ -778,11 +779,11 @@ public class Controller {
         menuPlaylist.setPreCondition(6, () -> isAdmin || playlist.getCreator().equals(currentUser));
 
         menuPlaylist.setHandler(1, () -> reproduzPlaylist(playlist));
-        menuPlaylist.setHandler(2, () -> imprimeListaMusicas(playlist.getMusics().values().stream().toList()));
+        menuPlaylist.setHandler(2, () -> printMusicsList(playlist.getMusics().values().stream().toList()));
         menuPlaylist.setHandler(3, () -> {
             try {
                 this.modelo.adicionaPlaylistBiblioteca(currentUser, playlist);
-            } catch (PlaylistAlreadySavedException | SemPermissoesException e) {
+            } catch (PlaylistAlreadySavedException | NoPermissionsException e) {
                 System.out.println(e.getMessage());
                 return;
             }
@@ -956,7 +957,7 @@ public class Controller {
         String nome = scanner.nextLine();
         try {
             this.modelo.criaPlaylist(nome, currentUser);
-        } catch (NameAlreadyUsedException | SemPermissoesException e) {
+        } catch (NameAlreadyUsedException | NoPermissionsException e) {
             System.out.println(e.getMessage());
             return;
         }
@@ -968,7 +969,7 @@ public class Controller {
      * UI para criar uma música dentro de um álbum.
      * @param nomeAlbum nome do álbum à qual a música vai ser adicionada
      */
-    public void menuCriarMusica(String nomeAlbum) {
+    public void createMusicMenu(String nomeAlbum) {
         System.out.println("\n+.:+ <ADICIONAR MÚSICA> +.:+");
 
         System.out.print("Introduza o nome da música: ");

@@ -2,7 +2,10 @@ package io.github.xico26.spotifum2.dao;
 
 import io.github.xico26.spotifum2.model.entity.Library;
 import io.github.xico26.spotifum2.model.entity.User;
+import io.github.xico26.spotifum2.model.entity.music.Music;
 import jakarta.persistence.*;
+
+import java.util.List;
 
 public class LibraryDAOImpl implements LibraryDAO {
     private EntityManagerFactory emf;
@@ -50,6 +53,19 @@ public class LibraryDAOImpl implements LibraryDAO {
         } catch (Exception e) {
             em.getTransaction().rollback();
             throw e;
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public List<Library> findAllWithMusic(Music music) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<Library> query = em.createQuery(
+                    "SELECT l FROM Library l JOIN l.savedMusics m WHERE m = :music", Library.class);
+            query.setParameter("music", music);
+            return query.getResultList();
         } finally {
             em.close();
         }

@@ -1,6 +1,7 @@
 package io.github.xico26.spotifum2.service;
 
 import io.github.xico26.spotifum2.dao.PlaylistDAO;
+import io.github.xico26.spotifum2.exceptions.AlbumNotFoundException;
 import io.github.xico26.spotifum2.exceptions.NameAlreadyUsedException;
 import io.github.xico26.spotifum2.exceptions.TooFewMusicsException;
 import io.github.xico26.spotifum2.model.entity.Album;
@@ -55,6 +56,14 @@ public class PlaylistService {
         playlistDAO.update(playlist);
     }
 
+    public List<Playlist> searchByTitle(String title) {
+        return playlistDAO.findByTitle(title);
+    }
+
+    public List<Playlist> findAllWithMusic (Music music) {
+        return playlistDAO.findAllWithMusic(music);
+    }
+
     public void generateFavouritesList(User user, int numMusics) throws TooFewMusicsException {
         String name = "Favourites List";
         if (listeningRecordService.getNumListened(user) < 10){
@@ -100,5 +109,13 @@ public class PlaylistService {
 
         save(genreList);
         libraryService.addPlaylist(u, genreList);
+    }
+
+    public boolean hasMusic(Playlist playlist, Music music) {
+        if (playlist.getMusics() == null || playlist.getMusics().isEmpty()) {
+            return false;
+        }
+
+        return playlist.getMusics().stream().anyMatch(m -> m.equals(music));
     }
 }

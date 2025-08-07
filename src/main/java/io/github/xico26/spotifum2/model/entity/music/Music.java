@@ -182,23 +182,6 @@ public class Music {
     }
 
     /**
-     * Implementa a reprodução de uma música individual, imprimindo a letra.
-     * @param u utilizador que ouve a música
-     * @return letra da música
-     */
-//    public String reproduzMusica (User u) {
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(this.toString());
-//        sb.append("\n");
-//        for (String l: this.lyrics) {
-//            sb.append(l);
-//            sb.append("\n");
-//        }
-//        this.registaReproducao();
-//        return sb.toString();
-//    }
-
-    /**
      * Diz se uma música é explícita ou não.
      * @return false
      */
