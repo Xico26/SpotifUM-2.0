@@ -4,8 +4,6 @@ import io.github.xico26.spotifum2.exceptions.*;
 import io.github.xico26.spotifum2.model.entity.*;
 import io.github.xico26.spotifum2.model.entity.music.Music;
 import io.github.xico26.spotifum2.model.entity.music.ExplicitMusic;
-import io.github.xico26.spotifum2.model.entity.plan.ISubscriptionPlan;
-import io.github.xico26.spotifum2.model.entity.plan.PremiumPlan;
 import io.github.xico26.spotifum2.model.entity.playlist.*;
 
 import java.io.Serializable;
@@ -268,40 +266,18 @@ public class SpotifUM implements Serializable {
      *
      * @param nome nome da playlist
      * @param u    criador
-     * @throws NomeJaExisteException  caso o nome tenha sido usado
+     * @throws NameAlreadyUsedException  caso o nome tenha sido usado
      * @throws SemPermissoesException caso o utilizador não tenha permissões
      */
-    public void criaPlaylist(String nome, User u) throws NomeJaExisteException, SemPermissoesException {
+    public void criaPlaylist(String nome, User u) throws NameAlreadyUsedException, SemPermissoesException {
         if (!u.getPlano().canCreatePlaylist()) {
             throw new SemPermissoesException("O plano atual não permite efetuar esta ação!");
         }
         if (u.getLibrary().getPlaylists().containsKey(nome)) {
-            throw new NomeJaExisteException("Já existe uma playlist com o nome " + nome);
+            throw new NameAlreadyUsedException("Já existe uma playlist com o nome " + nome);
         }
         Playlist novaPlaylist = new CustomPlaylist(nome, u);
         u.getLibrary().adicionarPlaylist(novaPlaylist);
-    }
-
-    /**
-     * Gera uma lista de favoritos, as n músicas mais ouvidas pelo utilizador.
-     *
-     * @param user   utilizador
-     * @param limite nº de músicas a incluir
-     */
-    public void geraListFavoritos(User user, int limite) throws PoucasMusicasException {
-        String nome = "Lista de Favoritos";
-        if (user.getLibrary().getPlaylists().containsKey(nome)) {
-            user.getLibrary().removerPlaylist(nome);
-        }
-        if (user.getNumMusicasOuvidas() < 10) {
-            throw new PoucasMusicasException("Ouça pelo menos 10 músicas para poder ter acesso à lista de favoritos!");
-        }
-
-        FavouriteList favs = new FavouriteList(nome, user);
-        user.getListeningHistory().entrySet().stream()
-                .sorted((m1, m2) -> Integer.compare(m2.getValue().size(), m1.getValue().size()))
-                .limit(limite)
-                .forEach(entry -> favs.adicionarMusica(entry.getKey()));
     }
 
     /**
@@ -312,12 +288,12 @@ public class SpotifUM implements Serializable {
      * @param user          utilizador
      * @return
      */
-    public RandomPlaylist geraPlaylistAleatoria(String nome, int numMaxMusicas, User user) throws PoucasMusicasException {
+    public RandomPlaylist geraPlaylistAleatoria(String nome, int numMaxMusicas, User user) throws TooFewMusicsException {
         RandomPlaylist pa = new RandomPlaylist(nome, user);
         List<Album> as = this.albuns.values().stream().toList();
         int totalMusicas = getTotalMusicas();
         if (totalMusicas == 0) {
-            throw new PoucasMusicasException("Não existem músicas suficientes para gerar uma lista aleatória!");
+            throw new TooFewMusicsException("Não existem músicas suficientes para gerar uma lista aleatória!");
         }
         if (numMaxMusicas > totalMusicas) {
             numMaxMusicas = totalMusicas;
@@ -332,48 +308,11 @@ public class SpotifUM implements Serializable {
             int r2 = random.nextInt(ms.size());
             Music music = ms.get(r2);
             if (!pa.getMusics().containsKey(music.getTitle())) {
-                pa.adicionarMusica(music);
+                pa.addMusic(music);
             }
         }
 
         return pa;
-    }
-
-    /**
-     * Gera uma lista de músicas de um dado género com duração inferior a um valor
-     *
-     * @param nome        nome da playlist
-     * @param genero      género
-     * @param tempoMaximo tempo máximo (em segundos)
-     * @param u           utilizador
-     * @param numMusicas  nº de músicas a incluir
-     * @throws NomeJaExisteException caso o nome já esteja a ser usado
-     */
-    public void geraListaGeneroTempo(String nome, String genero, int tempoMaximo, User u, int numMusicas) throws NomeJaExisteException, PoucasMusicasException {
-        if (u.getLibrary().getPlaylists().containsKey(nome)) {
-            throw new NomeJaExisteException("Já existe uma playlist com o nome " + nome);
-        }
-        if (getTotalMusicas() == 0) {
-            throw new PoucasMusicasException("Não existem músicas suficientes para gerar uma lista!");
-        }
-        GenreList lgt = new GenreList(nome, u);
-        int i = 0;
-        for (Album album : this.albuns.values()) {
-            for (Music m : album.getMusicas().values()) {
-                if (m.getGenre().toLowerCase().equals(genero.toLowerCase()) && m.getDuration() <= tempoMaximo) {
-                    lgt.adicionarMusica(m);
-                    i++;
-                    if (i >= numMusicas) {
-                        u.getLibrary().adicionarPlaylist(lgt);
-                        return;
-                    }
-                }
-            }
-        }
-
-        if (!lgt.getMusics().isEmpty()) {
-            u.getLibrary().adicionarPlaylist(lgt);
-        }
     }
 
     /**
@@ -387,11 +326,11 @@ public class SpotifUM implements Serializable {
      * @param duracao    duração
      * @param letra      letra da música
      * @param caracteres caracteres
-     * @throws NomeJaExisteException caso já exista uma música com o nome
+     * @throws NameAlreadyUsedException caso já exista uma música com o nome
      */
-    public void adicionaMusica(String nomeAlbum, String nome, String interprete, String editora, String genero, int duracao, List<String> letra, List<String> caracteres) throws NomeJaExisteException {
+    public void adicionaMusica(String nomeAlbum, String nome, String interprete, String editora, String genero, int duracao, List<String> letra, List<String> caracteres) throws NameAlreadyUsedException {
         if (this.albuns.get(nomeAlbum).getMusicas().containsKey(nome)) {
-            throw new NomeJaExisteException(nome);
+            throw new NameAlreadyUsedException(nome);
         }
         Music m = new Music(nome, interprete, genero, editora, letra, caracteres, duracao);
     }
@@ -403,11 +342,11 @@ public class SpotifUM implements Serializable {
      * @param interprete intérprete
      * @param editora    editora
      * @param ano        ano de lançamento
-     * @throws NomeJaExisteException caso já exista um álbum com o nome
+     * @throws NameAlreadyUsedException caso já exista um álbum com o nome
      */
-    public void adicionaAlbum(String nome, String interprete, String editora, int ano) throws NomeJaExisteException {
+    public void adicionaAlbum(String nome, String interprete, String editora, int ano) throws NameAlreadyUsedException {
         if (this.albuns.containsKey(nome)) {
-            throw new NomeJaExisteException(nome);
+            throw new NameAlreadyUsedException(nome);
         }
 
         Album a = new Album(nome, interprete, editora, ano);

@@ -19,15 +19,18 @@ public class Main {
         ListeningRecordDAO lrDAO = new ListeningRecordDAOImpl(emf);
         PlaylistDAO playlistDAO = new PlaylistDAOImpl(emf);
         UserDAO userDAO = new UserDAOImpl(emf);
+        MusicDAO musicDAO = new MusicDAOImpl(emf);
 
         AlbumService albumService = new AlbumService(albumDAO);
         ArtistService artistService = new ArtistService(artistDAO);
-        LibraryService libraryService = new LibraryService(libraryDAO);
-        ListeningRecordService listeningRecordService = new ListeningRecordService(lrDAO);
-        PlaylistService playlistService = new PlaylistService(playlistDAO);
+        MusicService musicService = new MusicService(musicDAO);
         UserService userService = new UserService(userDAO);
+        LibraryService libraryService = new LibraryService(libraryDAO);
+        ListeningRecordService listeningRecordService = new ListeningRecordService(lrDAO, userService);
+        PlaylistService playlistService = new PlaylistService(playlistDAO, libraryService, listeningRecordService, musicService);
 
-        Controller controller = new Controller(albumService, artistService, libraryService, listeningRecordService, playlistService, userService);
+
+        Controller controller = new Controller(albumService, artistService, libraryService, listeningRecordService, playlistService, userService, musicService);
 
         controller.run();
     }

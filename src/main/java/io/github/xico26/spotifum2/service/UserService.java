@@ -37,7 +37,7 @@ public class UserService {
         return user;
     }
 
-    public void addUser(User user) {
+    public void save(User user) {
         userDAO.save(user);
     }
 
@@ -52,7 +52,7 @@ public class UserService {
             throw new InvalidParamsException("Email already used!");
         }
 
-        addUser(newUser);
+        save(newUser);
     }
 
     public void setPlan (User u, String newPlan) {

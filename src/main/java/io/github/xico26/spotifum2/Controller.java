@@ -31,14 +31,16 @@ public class Controller {
     private final ListeningRecordService listeningRecordService;
     private final PlaylistService playlistService;
     private final UserService userService;
+    private final MusicService musicService;
 
-    public Controller(AlbumService albumService, ArtistService artistService, LibraryService libraryService, ListeningRecordService listeningRecordService, PlaylistService playlistService, UserService userService) {
+    public Controller(AlbumService albumService, ArtistService artistService, LibraryService libraryService, ListeningRecordService listeningRecordService, PlaylistService playlistService, UserService userService, MusicService musicService) {
         this.albumService = albumService;
         this.artistService = artistService;
         this.userService = userService;
         this.playlistService = playlistService;
         this.listeningRecordService = listeningRecordService;
         this.libraryService = libraryService;
+        this.musicService = musicService;
     }
 
     /**
@@ -336,7 +338,7 @@ public class Controller {
      */
     private void generateFavouritesList() {
         System.out.print("== GENERATE FAVOURITES LIST ==");
-        System.out.println("A lista de favoritos inclui as músicas que mais ouviu. Pode aceder a esta lista a qualquer momento na lista de playlists guardadas, e pode também gerar uma nova lista a qualquer momento.");
+        System.out.println("The Favourites List includes your most heard musics. You can generate and access this list at any time on your saved playlists list.");
         System.out.print("Enter the number of musics to include in the list: ");
         int num = 0;
         try {
@@ -348,51 +350,41 @@ public class Controller {
         }
         scanner.nextLine();
         try {
-            this.modelo.geraListFavoritos(currentUser, num);
-        } catch (Exception e) {
+            this.playlistService.generateFavouritesList(currentUser, num);
+        } catch (TooFewMusicsException e) {
             System.out.println(e.getMessage());
             return;
         }
-        System.out.println("Lista gerada com sucesso! Pode agora aceder à mesma na lista das playlists guardadas!");
+        System.out.println("List generated successfully! You can now access it on your saved playlists list.!");
     }
 
     /**
-     * UI para criação de uma lista de género e tempo.
+     * UI for creating list of musics of a genre.
      */
     private void generateGenreList() {
-        System.out.print("+.:+ <GERAR LISTA DE MÚSICAS DE UM GÉNERO> +.:+");
-        System.out.println("A lista de músicas de um género inclui músicas de um dado género com duração inferior a um dado valor. Pode aceder a esta lista a qualquer momento na lista de playlists guardadas, e pode também gerar uma nova lista a qualquer momento.");
-        System.out.print("Introduza o nome a dar à lista: ");
-        String nome = scanner.nextLine();
-        System.out.print("Introduza o género das músicas a incluir: ");
-        String genero = scanner.nextLine();
-        System.out.println("Introduza o número máximo de minutos que as músicas devem de ter: ");
-        int minutos = 0;
-        try {
-            minutos = scanner.nextInt();
-        } catch (InputMismatchException e) {
-            System.out.println("Input inválido!");
-            scanner.nextLine();
-            return;
-        }
-        scanner.nextLine();
-        System.out.print("Introduza o número de músicas a incluir na lista: ");
+        System.out.print("== GENERATE GENRE LIST ==");
+        System.out.println("The Genre List only includes musics of a given genre. You can access and create these lists at any time.");
+        System.out.print("Enter the playlist name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter the genre of musics to include: ");
+        String genre = scanner.nextLine();
+        System.out.print("Enter the number of musics to include: ");
         int num = 0;
         try {
             num = scanner.nextInt();
         } catch (InputMismatchException e) {
-            System.out.println("Input inválido!");
+            System.out.println("Invalid input!");
             scanner.nextLine();
             return;
         }
         scanner.nextLine();
         try {
-            this.modelo.geraListaGeneroTempo(nome, genero, minutos * 60, currentUser, num);
-        } catch (NomeJaExisteException | PoucasMusicasException e) {
+            this.playlistService.generateGenreList(name, genre, currentUser, num);
+        } catch (NameAlreadyUsedException | TooFewMusicsException e) {
             System.out.println(e.getMessage());
             return;
         }
-        System.out.println("Lista gerada com sucesso! Pode agora aceder à mesma na lista das playlists guardadas!");
+        System.out.println("List generated successfully!");
     }
 
     /**
@@ -615,7 +607,7 @@ public class Controller {
                 if (p.getMusics().containsKey(music.getTitle())) {
                     System.out.println("Música já guardada!");
                 }
-                p.adicionarMusica(music);
+                p.addMusic(music);
                 System.out.println("Música adicionada com sucesso!");
                 exploreLibrary();
             });
@@ -844,7 +836,7 @@ public class Controller {
         RandomPlaylist pa = null;
         try {
             pa = this.modelo.geraPlaylistAleatoria(nome, num, currentUser);
-        } catch (PoucasMusicasException e) {
+        } catch (TooFewMusicsException e) {
             System.out.println(e.getMessage());
             return;
         }
@@ -964,7 +956,7 @@ public class Controller {
         String nome = scanner.nextLine();
         try {
             this.modelo.criaPlaylist(nome, currentUser);
-        } catch (NomeJaExisteException | SemPermissoesException e) {
+        } catch (NameAlreadyUsedException | SemPermissoesException e) {
             System.out.println(e.getMessage());
             return;
         }
@@ -1004,7 +996,7 @@ public class Controller {
 
         try {
             this.modelo.adicionaMusica(nomeAlbum, nome, interprete, editora, genero, duracao, letra, caracteres);
-        } catch (NomeJaExisteException e) {
+        } catch (NameAlreadyUsedException e) {
             System.out.println("Música com o nome " + nome + " já existe!");
         }
 
@@ -1035,7 +1027,7 @@ public class Controller {
         scanner.nextLine();
         try {
             this.modelo.adicionaAlbum(nome, interprete, editora, ano);
-        } catch (NomeJaExisteException e) {
+        } catch (NameAlreadyUsedException e) {
             System.out.println("\nÁlbum com o nome " + nome + " já existe!");
             return;
         }

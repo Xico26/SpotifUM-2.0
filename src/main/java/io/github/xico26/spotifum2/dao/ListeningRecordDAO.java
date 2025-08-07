@@ -16,4 +16,8 @@ public interface ListeningRecordDAO {
     boolean hasListened (User u, int musicId);
 
     int getNumListened (User u);
+
+    List<Music> getUniqueListens (User u);
+
+    int getNumListensToMusic (User u, Music m);
 }

@@ -21,6 +21,11 @@ public class LibraryService {
         return libraryDAO.findByUser(u);
     }
 
+    public boolean hasMusic (User u, Music m) {
+        Library library = getUserLibrary(u);
+        return library.getMusics().contains(m);
+    }
+
     public void addMusic (User u, Music m) {
         Library library = getUserLibrary(u);
         if (!library.getMusics().contains(m)) {
@@ -57,6 +62,11 @@ public class LibraryService {
         }
     }
 
+    public boolean hasAlbum(User u, Album album) {
+        Library library = getUserLibrary(u);
+        return library.getAlbums().contains(album);
+    }
+
     public void addPlaylist(User user, Playlist playlist) {
         Library library = libraryDAO.findByUser(user);
         if (!library.getPlaylists().contains(playlist)) {
@@ -71,6 +81,24 @@ public class LibraryService {
         Library library = libraryDAO.findByUser(user);
         if (library.getPlaylists().contains(playlist)) {
             library.removePlaylist(playlist);
+            libraryDAO.update(library);
+        }
+    }
+
+    public boolean hasPlaylist(User u, Playlist playlist) {
+        Library library = getUserLibrary(u);
+        return library.getPlaylists().contains(playlist);
+    }
+
+    public boolean hasPlaylistByName (User u, String name) {
+        Library library = getUserLibrary(u);
+        return library.getPlaylists().stream().anyMatch(p -> p.getName().equals(name));
+    }
+
+    public void removePlaylistByName (User u, String name) {
+        Library library = getUserLibrary(u);
+        if (hasPlaylistByName(u, name)) {
+            library.removePlaylist(library.getPlaylists().stream().filter(p -> p.getName().equals(name)).findFirst().get());
             libraryDAO.update(library);
         }
     }

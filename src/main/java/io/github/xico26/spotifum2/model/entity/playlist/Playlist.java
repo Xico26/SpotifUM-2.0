@@ -4,7 +4,6 @@ import io.github.xico26.spotifum2.model.entity.User;
 import io.github.xico26.spotifum2.model.entity.music.Music;
 import jakarta.persistence.*;
 
-import java.io.Serializable;
 import java.util.*;
 
 @Entity
@@ -88,7 +87,7 @@ public abstract class Playlist {
      * Adiciona música à playlist.
      * @param music música a adicionar
      */
-    public void adicionarMusica(Music music) {
+    public void addMusic(Music music) {
         this.musics.add(music);
     }
 
