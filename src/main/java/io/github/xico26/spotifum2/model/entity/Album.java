@@ -62,6 +62,14 @@ public class Album {
         setMusics(a.getMusics());
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     /**
      * Devolve o nome do Álbum
      * @return nome

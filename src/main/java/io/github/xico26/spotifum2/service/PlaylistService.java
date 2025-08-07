@@ -1,31 +1,34 @@
 package io.github.xico26.spotifum2.service;
 
 import io.github.xico26.spotifum2.dao.PlaylistDAO;
-import io.github.xico26.spotifum2.exceptions.AlbumNotFoundException;
 import io.github.xico26.spotifum2.exceptions.NameAlreadyUsedException;
+import io.github.xico26.spotifum2.exceptions.NoPermissionsException;
 import io.github.xico26.spotifum2.exceptions.TooFewMusicsException;
 import io.github.xico26.spotifum2.model.entity.Album;
+import io.github.xico26.spotifum2.model.entity.Library;
 import io.github.xico26.spotifum2.model.entity.User;
 import io.github.xico26.spotifum2.model.entity.music.Music;
-import io.github.xico26.spotifum2.model.entity.playlist.FavouriteList;
-import io.github.xico26.spotifum2.model.entity.playlist.GenreList;
-import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
+import io.github.xico26.spotifum2.model.entity.playlist.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class PlaylistService {
     private final PlaylistDAO playlistDAO;
     private final LibraryService libraryService;
     private final ListeningRecordService listeningRecordService;
     private final MusicService musicService;
+    private final AlbumService albumService;
+    private static final Random random = new Random();
 
-    public PlaylistService(PlaylistDAO playlistDAO, LibraryService libraryService, ListeningRecordService listeningRecordService, MusicService musicService) {
+    public PlaylistService(PlaylistDAO playlistDAO, LibraryService libraryService, ListeningRecordService listeningRecordService, MusicService musicService, AlbumService albumService) {
         this.playlistDAO = playlistDAO;
         this.libraryService = libraryService;
         this.listeningRecordService = listeningRecordService;
         this.musicService = musicService;
+        this.albumService = albumService;
     }
 
     public Playlist findById(int id) {
@@ -49,6 +52,13 @@ public class PlaylistService {
     }
 
     public void delete(Playlist playlist) {
+        // remove from libraries
+        List<Library> libraries = libraryService.findAllWithPlaylist(playlist);
+        for (Library library : libraries) {
+            library.removePlaylist(playlist);
+            libraryService.save(library);
+        }
+
         playlistDAO.delete(playlist);
     }
 
@@ -117,5 +127,50 @@ public class PlaylistService {
         }
 
         return playlist.getMusics().stream().anyMatch(m -> m.equals(music));
+    }
+
+    public void toggleVisbility(Playlist playlist) {
+        playlist.setIsPublic(!playlist.isPublic());
+        save(playlist);
+    }
+
+    public RandomPlaylist generateRandomPlaylist(String name, int numMusics, User user) throws TooFewMusicsException {
+        RandomPlaylist randomPlaylist = new RandomPlaylist(name, user);
+        List<Album> albums = albumService.findAll();
+
+        int totalMusics = musicService.getTotalNumberOfMusics();
+
+        if (totalMusics == 0) {
+            throw new TooFewMusicsException("There aren't enough musics in the database!");
+        }
+        if (numMusics > totalMusics) {
+            numMusics = totalMusics;
+        }
+
+        while (randomPlaylist.getMusics().size() < numMusics) {
+            int r1 = random.nextInt(albums.size());
+            Album album = albums.get(r1);
+            List<Music> ms = album.getMusics();
+            if (ms.isEmpty()) {
+                continue;
+            }
+            int r2 = random.nextInt(ms.size());
+            Music music = ms.get(r2);
+            if (!randomPlaylist.getMusics().contains(music)) {
+                randomPlaylist.addMusic(music);
+            }
+        }
+
+        return randomPlaylist;
+    }
+
+    public void createPlaylist (String name, User user) {
+        if (libraryService.getUserLibrary(user).getPlaylists().stream().anyMatch(p -> p.getName().equals(name))) {
+            throw new NameAlreadyUsedException("There's already a playlist with this name!");
+        }
+        Playlist newPlaylist = new CustomPlaylist(name, user);
+        libraryService.addPlaylist(user, newPlaylist);
+
+        save(newPlaylist);
     }
 }

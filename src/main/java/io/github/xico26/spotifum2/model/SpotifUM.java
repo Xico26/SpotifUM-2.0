@@ -420,41 +420,4 @@ public class SpotifUM implements Serializable {
         user.getLibrary().adicionarPlaylist(playlist);
     }
 
-    /**
-     * Remove uma playlist do sistema
-     *
-     * @param playlist playlist
-     * @throws UserNotFoundException caso o utilizador que a criou não exista
-     */
-    public void removePlaylist(Playlist playlist) throws UserNotFoundException {
-        User criador = this.utilizadores.get(playlist.getCreator().getName());
-        if (criador == null) {
-            throw new UserNotFoundException("User não encontrado!");
-        }
-        if (!criador.getLibrary().getPlaylists().containsKey(playlist.getName())) {
-            throw new PlaylistNaoExisteException("Playlist não encontrada!");
-        }
-        criador.getLibrary().removerPlaylist(playlist.getName());
-        for (User u : this.utilizadores.values()) {
-            if (u.getLibrary().getPlaylists().containsKey(playlist.getName())) {
-                u.getLibrary().removerPlaylist(playlist.getName());
-            }
-        }
-    }
-
-    /**
-     * Torna uma música explícita
-     *
-     * @param music música
-     */
-    public void tornaExplicita(Music music) {
-        ExplicitMusic me = new ExplicitMusic(music);
-        substituiMusica(music, me);
-    }
-
-    public void substituiMusica(Music original, Music nova) throws MusicNotFoundException {
-        Album album = existeMusica(original);
-        album.getMusicas().remove(original.getTitle());
-        album.getMusicas().put(nova.getTitle(), nova.clone());
-    }
 }

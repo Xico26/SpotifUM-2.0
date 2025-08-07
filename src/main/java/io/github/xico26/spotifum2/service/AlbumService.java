@@ -4,15 +4,18 @@ import io.github.xico26.spotifum2.dao.AlbumDAO;
 import io.github.xico26.spotifum2.exceptions.AlbumNotFoundException;
 import io.github.xico26.spotifum2.exceptions.MusicAlreadySavedException;
 import io.github.xico26.spotifum2.model.entity.Album;
+import io.github.xico26.spotifum2.model.entity.Artist;
 import io.github.xico26.spotifum2.model.entity.music.Music;
 
 import java.util.List;
 
 public class AlbumService {
     private final AlbumDAO albumDAO;
+    private final ArtistService artistService;
 
-    public AlbumService(AlbumDAO albumDAO) {
+    public AlbumService(AlbumDAO albumDAO, ArtistService artistService) {
         this.albumDAO = albumDAO;
+        this.artistService = artistService;
     }
 
     public Album findById(int id) {
@@ -74,5 +77,13 @@ public class AlbumService {
         Album album = albumDAO.findById(albumId);
         album.getMusics().removeIf(m -> m.getId() == musicId);
         albumDAO.update(album);
+    }
+
+    public void createAlbum(String title, String artistName, String label, int year) {
+        Artist artist = artistService.findByName(artistName);
+        Album album = new Album(title, label, year, artist);
+
+        save(album);
+        artistService.addAlbum(artist, album);
     }
 }

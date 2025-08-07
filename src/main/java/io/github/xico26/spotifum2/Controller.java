@@ -78,8 +78,8 @@ public class Controller {
 
         // Handlers
         mainMenu.setHandler(1, () -> searchMenu());
-        mainMenu.setHandler(2, () -> ouvirPlaylistAleatoria());
-        mainMenu.setHandler(3, () -> menuCriarPlaylist());
+        mainMenu.setHandler(2, () -> playRandomPlaylist());
+        mainMenu.setHandler(3, () -> createPlaylistMenu());
         mainMenu.setHandler(4, () -> userMenu());
         mainMenu.setHandler(5, () -> statsMenu());
         mainMenu.setHandler(6, () -> adminMenu());
@@ -646,7 +646,7 @@ public class Controller {
             }
             System.out.println("Album added successfully!");
         });
-        albumMenu.setHandler(4, () -> createMusicMenu(album.getName()));
+        albumMenu.setHandler(4, () -> createMusicMenu(album.getId()));
         albumMenu.setHandler(5, () -> {
             try {
                 albumService.delete(album);
@@ -659,396 +659,381 @@ public class Controller {
     }
 
     /**
-     * Reproduz uma lista de músicas genérica, podendo portanto reproduzir álbuns e playlists. Permite saltar durante a reprodução e sair a qualquer momento.
-     * @param nomeLista nome da lista
+     * Plays a generic list of musics (album, playlist).
+     * @param listName nome da lista
      * @param music lista de músicas
      */
-    public void reproduzListaMusicas(String nomeLista, List<Music> music) {
+    public void playMusicList(String listName, List<Music> music) {
         int i = 0;
-        boolean aReproduzir = true;
+        boolean playing = true;
         Random r = new Random();
         if (music.isEmpty()) {
-            System.out.println("Lista vazia!");
+            System.out.println("Empty music list!");
             return;
         }
-        System.out.println("A REPRODUZIR: " + nomeLista);
-        while (aReproduzir && i < music.size()) {
-            Music atual = music.get(i);
-            if ((atual.isExplicit() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
+        System.out.println("NOW PLAYING: " + listName);
+        while (playing && i < music.size()) {
+            Music current = music.get(i);
+            if ((current.isExplicit() && !currentUser.wantsExplicit())) {
                 i++;
                 if (i >= music.size()) {
-                    System.out.println("Fim da lista de músicas!");
-                    aReproduzir = false;
+                    System.out.println("End of list!");
+                    playing = false;
                 }
                 continue;
             }
-            System.out.println("CONTROLOS DA REPRODUÇÃO:");
-            System.out.println("Enter para continuar, a=Música Anterior, p=Próxima Música, r=Música Aleatória, s=Sair");
+            System.out.println("PLAY CONTROLS:");
+            System.out.println("ENTER: continue, P=Previous Music, N=Next Music, R=Random Music, Q=Quit");
 
-            System.out.println("\nA REPRODUZIR MÚSICA: " + atual.toString() + "\n");
+            System.out.println("\nPLAYING MUSIC: " + current + "\n");
             if (i+1 < music.size()) {
-                System.out.println("Música seguinte: " + music.get(i+1).toString() + "\n");
+                System.out.println("Next music: " + music.get(i+1).toString() + "\n");
             } else {
-                System.out.println("Última música");
+                System.out.println("Last music");
             }
 
-            boolean saltou = false;
+            boolean skipped = false;
 
-            String letra = atual.getLyrics();
-            for (String linha : letra) {
-                System.out.print(linha + " ");
+            String lyricsString = current.getLyrics();
+            List<String> lyrics = Arrays.asList(lyricsString.split("\n"));
+            for (String line : lyrics) {
+                System.out.print(line + " ");
                 String cmd = scanner.nextLine();
 
                 switch (cmd.toLowerCase()) {
-                    case "a":
-                        if (currentUser.getPlano().podeAvancarRetroceder() && i > 0) {
+                    case "p":
+                        if (userService.getSubscriptionPlan(currentUser).podeAvancarRetroceder() && i > 0) {
                             i--;
-                            saltou = true;
+                            skipped = true;
                         } else {
-                            System.out.println("O plano atual não permite voltar atrás!");
+                            System.out.println("The current plan doesn't allow going back!");
                         }
                         break;
-                    case "p":
+                    case "n":
                         i++;
-                        saltou = true;
+                        skipped = true;
                         break;
                     case "r":
                         if (music.size() > 1) {
-                            int novoI;
+                            int newI;
                             do {
-                                novoI = r.nextInt(music.size());
-                            } while (novoI == i);
-                            i = novoI;
-                            saltou = true;
+                                newI = r.nextInt(music.size());
+                            } while (newI == i);
+                            i = newI;
+                            skipped = true;
                         }
                         break;
-                    case "s":
-                        aReproduzir = false;
+                    case "q":
+                        playing = false;
                         break;
                     default:
                         break;
                 }
-                if (cmd.toLowerCase().equals("a") && currentUser.getPlano().podeAvancarRetroceder()) {
+                if (cmd.toLowerCase().equals("p") && userService.getSubscriptionPlan(currentUser).podeAvancarRetroceder()) {
                     break;
                 }
-                if (cmd.toLowerCase().equals("r") || cmd.toLowerCase().equals("s") || cmd.toLowerCase().equals("p")) {
+                if (cmd.toLowerCase().equals("r") || cmd.toLowerCase().equals("q") || cmd.toLowerCase().equals("n")) {
                     break;
                 }
             }
 
-            if (!saltou) {
+            if (!skipped) {
                 i++;
-                atual.registaReproducao();
-                currentUser.registaReproducaoMusica(atual);
+                current.registaReproducao();
+                listeningRecordService.registerMusicPlay(currentUser, current);
             }
 
             if (i >= music.size()) {
-                System.out.println("\nFim da lista de músicas!\n");
-                aReproduzir = false;
+                System.out.println("\nEnd of list!\n");
+                playing = false;
             }
         }
     }
 
     /**
-     * Metodo intermédio para reprodução de um álbum
+     * Intermediate method for playing an album
      * @param album
      */
     public void playAlbum(Album album) {
-        List<Music> music = album.getMusicas().values().stream().toList();
-        reproduzListaMusicas(album.getName(), music);
+        playMusicList(album.getName(), album.getMusics());
     }
 
     /**
-     * Menu com informações de uma playlist. Permite ouvi-la, ver as músicas e adicionar à biblioteca
+     * Menu with information and options related to a playlist
      * @param playlist playlist
      */
     public void playlistInfoMenu(Playlist playlist) {
         System.out.println(playlist.toString());
-        Menu menuPlaylist = new Menu("opções", new String[]{
-                "Ouvir playlist",
-                "Ver músicas",
-                "Adicionar à biblioteca",
-                "Tornar Pública",
-                "Tornar Privada",
-                "Remover"
+        Menu playlistMenu = new Menu("options", new String[]{
+                "Listen to playlist",
+                "See musics",
+                "Add to library",
+                "Toggle visibility. Currently: " + (playlist.isPublic() ? "public" : "private"),
+                "Remove"
         });
-        menuPlaylist.setPreCondition(1, () -> loggedIn);
-        menuPlaylist.setPreCondition(3, () -> loggedIn && playlist.isPublic());
-        menuPlaylist.setPreCondition(4, () -> !playlist.isPublic() && (isAdmin || playlist.getCreator().equals(currentUser)));
-        menuPlaylist.setPreCondition(5, () -> playlist.isPublic() && (isAdmin || playlist.getCreator().equals(currentUser)));
-        menuPlaylist.setPreCondition(6, () -> isAdmin || playlist.getCreator().equals(currentUser));
+        playlistMenu.setPreCondition(1, () -> loggedIn);
+        playlistMenu.setPreCondition(3, () -> loggedIn && playlist.isPublic());
+        playlistMenu.setPreCondition(4, () -> isAdmin || playlist.getCreator().equals(currentUser));
+        playlistMenu.setPreCondition(5, () -> isAdmin || playlist.getCreator().equals(currentUser));
 
-        menuPlaylist.setHandler(1, () -> reproduzPlaylist(playlist));
-        menuPlaylist.setHandler(2, () -> printMusicsList(playlist.getMusics().values().stream().toList()));
-        menuPlaylist.setHandler(3, () -> {
+        playlistMenu.setHandler(1, () -> playPlaylist(playlist));
+        playlistMenu.setHandler(2, () -> printMusicsList(playlist.getMusics()));
+        playlistMenu.setHandler(3, () -> {
             try {
-                this.modelo.adicionaPlaylistBiblioteca(currentUser, playlist);
+                libraryService.addPlaylist(currentUser, playlist);
             } catch (PlaylistAlreadySavedException | NoPermissionsException e) {
                 System.out.println(e.getMessage());
                 return;
             }
-            System.out.println("Playlist guardada com sucesso!");
+            System.out.println("Playlist added successfully!");
         });
-        menuPlaylist.setHandler(4, () -> playlist.setIsPublic(true));
-        menuPlaylist.setHandler(5, () -> playlist.setIsPublic(false));
-        menuPlaylist.setHandler(6, () -> {
-            try {
-                this.modelo.removePlaylist(playlist);
-            } catch (UserNotFoundException e) {
-                System.out.println(e.getMessage());
-            }
-        });
+        playlistMenu.setHandler(4, () -> playlistService.toggleVisbility(playlist));
+        playlistMenu.setHandler(5, () -> playlistService.delete(playlist));
 
-        menuPlaylist.run();
+        playlistMenu.run();
     }
 
     /**
-     * Metodo intermédio para reprodução de uma playlist, verificando as permissões de um utilizador.
+     * Intermediate method for playling a playlist.
      * @param playlist
      */
-    public void reproduzPlaylist(Playlist playlist) {
+    public void playPlaylist(Playlist playlist) {
         if (playlist instanceof CustomPlaylist) {
-            if (currentUser.getPlano().podeOuvirPlaylistConstruida()) {
-                List<Music> music = new ArrayList<Music>(playlist.getMusics().values().stream().toList());
-                reproduzListaMusicas(playlist.getName(), music);
+            if (userService.getSubscriptionPlan(currentUser).canListenCustomPlaylist()) {
+                List<Music> music = playlist.getMusics();
+                playMusicList(playlist.getName(), music);
             } else {
-                System.out.println("O plano atual só permite ouvir playlists aleatórias!");
+                System.out.println("The current plan only allows listening to random playlists!");
             }
         } else if (playlist instanceof RandomPlaylist) {
-            List<Music> music = new ArrayList<Music>(playlist.getMusics().values().stream().toList());
-            reproduzListaMusicas(playlist.getName(), music);
+            List<Music> music = playlist.getMusics();
+            playMusicList(playlist.getName(), music);
         }
     }
 
-    private void ouvirPlaylistAleatoria() {
-        System.out.println("== OUVIR PLAYLIST ALEATÓRIA ==");
-        System.out.print("Introduza o nome da playlist: ");
-        String nome = scanner.nextLine();
-        System.out.print("Introduza o número de músicas a adicionar: ");
+    private void playRandomPlaylist() {
+        System.out.println("== LISTEN TO RANDOM PLAYLIST ==");
+        // CREATION
+        System.out.print("Enter the name of the playlist: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter the number of musics to add: ");
         int num = 0;
         try {
             num = scanner.nextInt();
         } catch (InputMismatchException e) {
-            System.out.println("Input inválido!");
+            System.out.println("Invalid input!");
             scanner.nextLine();
             return;
         }
         scanner.nextLine();
-        RandomPlaylist pa = null;
+        RandomPlaylist randomPlaylist = null;
         try {
-            pa = this.modelo.geraPlaylistAleatoria(nome, num, currentUser);
+            randomPlaylist = playlistService.generateRandomPlaylist(name, num, currentUser);
         } catch (TooFewMusicsException e) {
             System.out.println(e.getMessage());
             return;
         }
-        System.out.println("Playlist criada com sucesso!");
+        System.out.println("Playlist created successfully!");
 
+        // PLAYING
         int i = 0;
-        boolean aReproduzir = true;
+        boolean playing = true;
         Random r = new Random();
-        System.out.println("\nA REPRODUZIR A PLAYLIST ALEATÓRIA");
-        List<Music> music = new ArrayList<Music>(pa.getMusics().values().stream().toList());
+        System.out.println("\nPLAYING THE RANDOM PLAYLIST");
+        List<Music> music = randomPlaylist.getMusics();
 
         if (music.isEmpty()) {
-            System.out.println("Lista vazia!");
+            System.out.println("Empty music list!");
             return;
         }
 
-        while (aReproduzir && i < music.size()) {
-            Music atual = music.get(i);
-            if ((atual.isExplicit() && !currentUser.wantsExplicit()) || (atual.isMultimedia() && !currentUser.querVerMultimedia())) {
+        while (playing && i < music.size()) {
+            Music current = music.get(i);
+            if ((current.isExplicit() && !currentUser.wantsExplicit())) {
                 i++;
                 if (i >= music.size()) {
-                    System.out.println("Fim da lista de músicas!");
-                    aReproduzir = false;
+                    System.out.println("End of list!\n");
+                    playing = false;
                 }
                 continue;
             }
-            System.out.println("CONTROLOS DA REPRODUÇÃO:");
-            System.out.println("Enter para continuar, r=Música Aleatória, s=Sair");
+            System.out.println("PLAY CONTROLS:");
+            System.out.println("ENTER: continue, R=Random Music, Q=Quit");
 
-            System.out.println("\nA REPRODUZIR MÚSICA: " + atual.toString() + "\n");
+            System.out.println("\nPLAYING MUSIC: " + current.toString() + "\n");
 
-            boolean saltou = false;
+            boolean skipped = false;
 
-            String letra = atual.getLyrics();
-            for (String linha : letra) {
-                System.out.print(linha + " ");
+            String lyricsString = current.getLyrics();
+            List<String> lyrics = Arrays.asList(lyricsString.split("\n"));
+            for (String line : lyrics) {
+                System.out.print(line + " ");
                 String cmd = scanner.nextLine();
 
                 switch (cmd.toLowerCase()) {
                     case "r":
-                        int novoI = i;
-                        while (novoI == i) {
-                            novoI = r.nextInt(music.size());
+                        int newI = i;
+                        while (newI == i) {
+                            newI = r.nextInt(music.size());
                         }
-                        i = novoI;
-                        saltou = true;
+                        i = newI;
+                        skipped = true;
                         break;
-                    case "s":
-                        aReproduzir = false;
+                    case "q":
+                        playing = false;
                         break;
                     default:
                         break;
                 }
-                if (cmd.toLowerCase().equals("r") || cmd.toLowerCase().equals("s")) {
+                if (cmd.toLowerCase().equals("r") || cmd.toLowerCase().equals("q")) {
                     break;
                 }
             }
 
-            if (!saltou) {
+            if (!skipped) {
                 i++;
-                atual.registaReproducao();
-                currentUser.registaReproducaoMusica(atual);
+                current.registaReproducao();
+                listeningRecordService.registerMusicPlay(currentUser, current);
             }
 
             if (i >= music.size()) {
-                System.out.println("\nFim da lista de músicas!\n");
-                aReproduzir = false;
+                System.out.println("\nEnd of list!\n");
+                playing = false;
             }
         }
     }
 
     /**
-     * Menu que apresenta várias estatísticas de utilização da SpotifUM
+     * Menu with stats about SpotifUM
      */
     public void statsMenu() {
-        System.out.println("+.:+ <ESTATÍSTICAS> +.:+");
-        System.out.println("Nº. de utilizadores: " + this.modelo.getTotalUtilizadores());
-        System.out.println("Nº. de músicas: " + this.modelo.getTotalMusicas());
-        System.out.println("Nº. de álbuns: " + this.modelo.getTotalAlbuns());
-        System.out.println("Nº. de playlists públicas: " + this.modelo.getTotalPlaylists());
-        System.out.println("Nº. de intérpretes: " + this.modelo.getTotalInterpretes());
-        System.out.println("Música mais reproduzida: " + this.modelo.getMusicaMaisReproduzida());
-        System.out.println("Intérprete mais escutado: " + this.modelo.getInterpreteMaisEscutado());
-        System.out.println("User que mais músicas ouviu desde sempre: " + this.modelo.getUserMaisMusicasOuvidas(LocalDate.of(2000,1,1)));
-        System.out.println("User que mais músicas ouviu no último mês: " + this.modelo.getUserMaisMusicasOuvidas(LocalDate.now().minusMonths(1)));
-        System.out.println("User com mais pontos: " + this.modelo.getUserMaisPontos());
-        System.out.println("Género de música mais reproduzida: " + this.modelo.getTipoMaisReproduzido());
-        System.out.println("User com mais playlists: " + this.modelo.getUserMaisPlaylists());
+        System.out.println("== STATISTICS ==");
+        System.out.println("Nº. de utilizadores: ");
+        System.out.println("Nº. de músicas: " + musicService.getTotalNumberOfMusics());
+        System.out.println("Nº. de álbuns: " + albumService.findAll().size());
+        System.out.println("Nº. de playlists públicas: " + playlistService.findPublicPlaylists().size());
+        System.out.println("Nº. de intérpretes: " + artistService.findAll().size());
+        System.out.println("Música mais reproduzida: " );
+        System.out.println("Intérprete mais escutado: " );
+        System.out.println("User que mais músicas ouviu desde sempre: " );
+        System.out.println("User que mais músicas ouviu no último mês: " );
+        System.out.println("User com mais pontos: " );
+        System.out.println("Género de música mais reproduzida: " );
+        System.out.println("User com mais playlists: " );
     }
 
     /**
-     * Menu com várias opções de administração, como criar álbuns e músicas.
+     * Admin menu.
      */
     public void adminMenu() {
-        Menu menuAdministracao = new Menu("administração", new String[]{
-            "Criar álbum",
-            "Criar playlist",
-            "Guardar estado",
+        Menu administrationMenu = new Menu("administration", new String[]{
+            "Create album",
+            "Create playlist",
         });
-        menuAdministracao.setHandler(1, () -> menuCriarAlbum());
-        menuAdministracao.setHandler(2, () -> menuCriarPlaylist());
-        menuAdministracao.setHandler(3, () -> guardaEstado());
+        administrationMenu.setHandler(1, () -> createAlbumMenu());
+        administrationMenu.setHandler(2, () -> createPlaylistMenu());
 
-        menuAdministracao.run();
+        administrationMenu.run();
     }
 
     /**
-     * UI para criar uma playlist.
+     * UI for creating a playlist.
      */
-    public void menuCriarPlaylist() {
-        if (!currentUser.getPlano().canCreatePlaylist()) {
-            System.out.println("O plano atual não permite criar playlists!");
+    public void createPlaylistMenu() {
+        if (!userService.getSubscriptionPlan(currentUser).canCreatePlaylist()) {
+            System.out.println("The current plan does not allow the creation of playlists!");
             return;
         }
-        System.out.println("*+.:*+.<CRIAR PLAYLIST>.+*:.+*");
-        System.out.print("Nome da playlist: ");
-        String nome = scanner.nextLine();
+        System.out.println("== CREATE PLAYLIST ==");
+        System.out.print("Enter the playlist name: ");
+        String name = scanner.nextLine();
         try {
-            this.modelo.criaPlaylist(nome, currentUser);
+            playlistService.createPlaylist(name, currentUser);
         } catch (NameAlreadyUsedException | NoPermissionsException e) {
             System.out.println(e.getMessage());
             return;
         }
 
-        System.out.println("Playlist '" + nome + "' criada!");
+        System.out.println("Playlist '" + name + "' created!");
     }
 
     /**
-     * UI para criar uma música dentro de um álbum.
-     * @param nomeAlbum nome do álbum à qual a música vai ser adicionada
+     * UI for adding a music inside an album.
      */
-    public void createMusicMenu(String nomeAlbum) {
-        System.out.println("\n+.:+ <ADICIONAR MÚSICA> +.:+");
+    public void createMusicMenu(int albumId) {
+        System.out.println("\n== ADD MUSIC ==");
 
-        System.out.print("Introduza o nome da música: ");
-        String nome = scanner.nextLine();
-        System.out.print("Introduza o nome do intérprete: ");
-        String interprete = scanner.nextLine();
-        System.out.print("Introduza o nome da editora: ");
-        String editora = scanner.nextLine();
-        System.out.print("Introduza o género da música: ");
-        String genero = scanner.nextLine();
-        System.out.print("Introduza a duração da música (em segundos): ");
-        int duracao = 0;
+        System.out.print("Enter the music name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter the genre: ");
+        String genre = scanner.nextLine();
+        System.out.print("Enter the music duration (in seconds): ");
+        int duration = 0;
         try {
-            duracao = scanner.nextInt();
+            duration = scanner.nextInt();
         } catch (InputMismatchException e) {
-            System.out.println("Input inválido!");
+            System.out.println("Invalid input!");
             scanner.nextLine();
             return;
         }
         scanner.nextLine();
-        System.out.println("Leitura do ficheiro que contém a letra da música:");
-        List<String> letra = carregaTexto();
-        System.out.println("Leitura do ficheiro que contém os caracteres da música:");
-        List<String> caracteres = carregaTexto();
+        System.out.println("You will now load the lyrics.");
+        List<String> lyrics = loadText();
 
         try {
-            this.modelo.adicionaMusica(nomeAlbum, nome, interprete, editora, genero, duracao, letra, caracteres);
-        } catch (NameAlreadyUsedException e) {
-            System.out.println("Música com o nome " + nome + " já existe!");
+            musicService.createMusic(albumId, name, genre, duration, lyrics);
+        } catch (NameAlreadyUsedException | AlbumNotFoundException e) {
+            System.out.println(e.getMessage());
         }
 
-        System.out.println("Music '" + nome + "' adicionada!");
+        System.out.println("Music '" + name + "' created!");
     }
 
     /**
-     * UI para criar um álbum
+     * UI for creating an album
      */
-    public void menuCriarAlbum() {
-        System.out.println("\n+.:+ <ADICIONAR ÁLBUM> +.:+");
-        System.out.print("Introduza o título do álbum: ");
-        String nome = scanner.nextLine();
-        System.out.print("Introduza o nome do intérprete: ");
-        String interprete = scanner.nextLine();
-        System.out.print("Introduza o nome da editora: ");
-        String editora = scanner.nextLine();
-        System.out.print("Introduza o ano de lançamento: ");
-        int ano = 0;
+    public void createAlbumMenu() {
+        System.out.println("\n== CREATE ALBUM ==");
+        System.out.print("Enter the album title: ");
+        String title = scanner.nextLine();
+        System.out.print("Enter the artist name: ");
+        String artist = scanner.nextLine();
+        System.out.print("Enter the label name: ");
+        String label = scanner.nextLine();
+        System.out.print("Enter the release year: ");
+        int year = 0;
         try {
-            ano = scanner.nextInt();
+            year = scanner.nextInt();
         } catch (InputMismatchException e) {
-            System.out.println("Input inválido!");
+            System.out.println("Invalid input!");
             scanner.nextLine();
             return;
         }
 
         scanner.nextLine();
         try {
-            this.modelo.adicionaAlbum(nome, interprete, editora, ano);
+            albumService.createAlbum(title, artist, label, year);
         } catch (NameAlreadyUsedException e) {
-            System.out.println("\nÁlbum com o nome " + nome + " já existe!");
+            System.out.println("\nÁlbum com o nome " + title + " já existe!");
             return;
         }
 
-        System.out.println("\nAlbum '" + nome + "' adicionado!");
+        System.out.println("\nAlbum '" + title + "' adicionado!");
     }
 
     /**
-     * Metodo auxiliar para facilitar a introdução da letra e dos caracteres de uma música.
+     * Auxiliary method for loading lyrics.
      * @return
      */
-    public List<String> carregaTexto () {
-        System.out.print("Introduza o nome do ficheiro: ");
-        String nomeFicheiro = scanner.nextLine();
-        List<String> linhas = new ArrayList<>();
+    public List<String> loadText() {
+        System.out.print("Enter the file name: ");
+        String fileName = scanner.nextLine();
+        List<String> lines = new ArrayList<>();
         try {
-            linhas = Files.readAllLines(Paths.get(nomeFicheiro), StandardCharsets.UTF_8);
+            lines = Files.readAllLines(Paths.get(fileName), StandardCharsets.UTF_8);
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-        return linhas;
+        return lines;
     }
 }

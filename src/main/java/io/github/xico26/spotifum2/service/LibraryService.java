@@ -109,6 +109,10 @@ public class LibraryService {
         return libraryDAO.findAllWithMusic(music);
     }
 
+    public List<Library> findAllWithPlaylist (Playlist playlist) {
+        return libraryDAO.findAllWithPlaylist(playlist);
+    }
+
     public void save (Library library) {
         libraryDAO.save(library);
     }

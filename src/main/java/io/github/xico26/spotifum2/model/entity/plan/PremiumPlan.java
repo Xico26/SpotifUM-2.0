@@ -35,7 +35,7 @@ public class PremiumPlan implements ISubscriptionPlan, Serializable {
         return true;
     }
 
-    public boolean podeOuvirPlaylistConstruida() {
+    public boolean canListenCustomPlaylist() {
         return true;
     }
 

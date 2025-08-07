@@ -1,7 +1,9 @@
 package io.github.xico26.spotifum2.service;
 
 import io.github.xico26.spotifum2.dao.MusicDAO;
+import io.github.xico26.spotifum2.exceptions.AlbumNotFoundException;
 import io.github.xico26.spotifum2.exceptions.MusicNotFoundException;
+import io.github.xico26.spotifum2.exceptions.NameAlreadyUsedException;
 import io.github.xico26.spotifum2.model.entity.Album;
 import io.github.xico26.spotifum2.model.entity.Library;
 import io.github.xico26.spotifum2.model.entity.music.ExplicitMusic;
@@ -119,6 +121,32 @@ public class MusicService {
         Album album = music.getAlbum();
         album.getMusics().add(newMusic);
         albumService.save(album);
+    }
+
+    public void createMusic(int albumId, String name, String genre, int duration, List<String> lyrics) {
+        Album album = albumService.findById(albumId);
+
+        if (album == null) {
+            throw new AlbumNotFoundException("Album not found!");
+        }
+
+        if (album.getMusics().stream().anyMatch(m -> m.getTitle().equals(name))) {
+            throw new NameAlreadyUsedException("Music with this name already exists!");
+        }
+
+        // process lyrics
+        StringBuilder sb = new StringBuilder();
+        for (String lyric : lyrics) {
+            sb.append(lyric).append('\n');
+        }
+
+        String lyricsString =  sb.toString();
+
+        Music newMusic = new Music(name, genre, lyricsString, duration, album);
+
+        save(newMusic);
+
+        albumService.addMusic(album.getId(), newMusic);
     }
 }
 

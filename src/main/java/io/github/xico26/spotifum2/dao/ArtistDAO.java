@@ -9,6 +9,8 @@ public interface ArtistDAO {
 
     List<Artist> findAll();
 
+    Artist findByName(String name);
+
     void save(Artist a);
 
     void delete(Artist a);

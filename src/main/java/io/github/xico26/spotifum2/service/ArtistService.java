@@ -1,6 +1,7 @@
 package io.github.xico26.spotifum2.service;
 
 import io.github.xico26.spotifum2.dao.ArtistDAO;
+import io.github.xico26.spotifum2.model.entity.Album;
 import io.github.xico26.spotifum2.model.entity.Artist;
 import io.github.xico26.spotifum2.model.entity.User;
 
@@ -17,6 +18,10 @@ public class ArtistService {
         return artistDAO.findById(id);
     }
 
+    public Artist findByName (String name) {
+        return artistDAO.findByName(name);
+    }
+
     public List<Artist> findAll() {
         return artistDAO.findAll();
     }
@@ -31,5 +36,10 @@ public class ArtistService {
 
     public void update(Artist artist) {
         artistDAO.update(artist);
+    }
+
+    public void addAlbum(Artist artist, Album album) {
+        artist.getAlbums().add(album);
+        update(artist);
     }
 }

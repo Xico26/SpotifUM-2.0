@@ -1,9 +1,11 @@
 package io.github.xico26.spotifum2.dao;
 
+import io.github.xico26.spotifum2.model.entity.Album;
 import io.github.xico26.spotifum2.model.entity.Artist;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
+import jakarta.persistence.TypedQuery;
 
 import java.util.List;
 
@@ -28,6 +30,18 @@ public class ArtistDAOImpl implements ArtistDAO {
         List<Artist> artists = em.createQuery("FROM Artist", Artist.class).getResultList();
         em.close();
         return artists;
+    }
+
+    @Override
+    public Artist findByName(String name) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<Artist> query = em.createQuery("SELECT a FROM Artist a WHERE LOWER(a.name) == :name", Artist.class);
+            query.setParameter("name", name.toLowerCase());
+            return query.getSingleResult();
+        } finally {
+            em.close();
+        }
     }
 
     @Override

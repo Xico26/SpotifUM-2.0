@@ -21,13 +21,13 @@ public class Main {
         UserDAO userDAO = new UserDAOImpl(emf);
         MusicDAO musicDAO = new MusicDAOImpl(emf);
 
-        AlbumService albumService = new AlbumService(albumDAO);
         ArtistService artistService = new ArtistService(artistDAO);
+        AlbumService albumService = new AlbumService(albumDAO, artistService);
         MusicService musicService = new MusicService(musicDAO, albumService);
         UserService userService = new UserService(userDAO);
         LibraryService libraryService = new LibraryService(libraryDAO);
         ListeningRecordService listeningRecordService = new ListeningRecordService(lrDAO, userService);
-        PlaylistService playlistService = new PlaylistService(playlistDAO, libraryService, listeningRecordService, musicService);
+        PlaylistService playlistService = new PlaylistService(playlistDAO, libraryService, listeningRecordService, musicService, albumService);
         musicService.setPlaylistService(playlistService);
         musicService.setLibraryService(libraryService);
 

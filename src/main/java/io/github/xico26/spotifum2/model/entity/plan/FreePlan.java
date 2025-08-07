@@ -36,7 +36,7 @@ public class FreePlan implements ISubscriptionPlan, Serializable {
         return false;
     }
 
-    public boolean podeOuvirPlaylistConstruida() {
+    public boolean canListenCustomPlaylist() {
         return false;
     }
 

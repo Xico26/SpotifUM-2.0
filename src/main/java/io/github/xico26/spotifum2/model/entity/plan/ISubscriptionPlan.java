@@ -20,7 +20,7 @@ public interface ISubscriptionPlan {
 
     boolean canCreateGenreList();
 
-    boolean podeOuvirPlaylistConstruida();
+    boolean canListenCustomPlaylist();
 
     boolean canListenSingleMusic();
 

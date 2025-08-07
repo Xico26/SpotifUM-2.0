@@ -44,7 +44,7 @@ public class PlusPlan implements ISubscriptionPlan, Serializable {
         user.addPoints(pontosPorMusica);
     }
 
-    public boolean podeOuvirPlaylistConstruida() {
+    public boolean canListenCustomPlaylist() {
         return true;
     }
 

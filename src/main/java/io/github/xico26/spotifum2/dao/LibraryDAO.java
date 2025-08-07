@@ -3,6 +3,7 @@ package io.github.xico26.spotifum2.dao;
 import io.github.xico26.spotifum2.model.entity.Library;
 import io.github.xico26.spotifum2.model.entity.User;
 import io.github.xico26.spotifum2.model.entity.music.Music;
+import io.github.xico26.spotifum2.model.entity.playlist.Playlist;
 
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface LibraryDAO {
     void update (Library library);
 
     List<Library> findAllWithMusic(Music music);
+
+    List<Library> findAllWithPlaylist(Playlist playlist);
 }
